@@ -50,6 +50,13 @@ body {
 
 .hero-content { position: relative; z-index: 1; max-width: 800px; }
 
+.hero-logo {
+  max-width: 350px;
+  width: 80%;
+  margin-bottom: 1.5rem;
+  filter: drop-shadow(0 10px 30px rgba(0,0,0,0.3));
+}
+
 .logo-text {
   font-size: clamp(3rem, 8vw, 5rem);
   font-weight: 800;
@@ -379,7 +386,7 @@ footer a { color: var(--accent); text-decoration: none; }
 <!-- HERO -->
 <section class="hero">
   <div class="hero-content">
-    <div class="logo-text">SVEDAS<span>BAU</span></div>
+    <img src="logo.png" alt="SVEDASBAU Logo" class="hero-logo">
     <p class="hero-subtitle">BAU- UND SANIERUNGSARBEITEN</p>
     <p class="hero-tagline">Qualität, die bleibt. Von der Fassade bis zum Innenausbau.</p>
     <a href="#kontakt" class="cta-btn">Angebot anfragen</a>
