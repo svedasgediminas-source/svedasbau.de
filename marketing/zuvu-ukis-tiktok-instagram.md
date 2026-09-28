@@ -5,10 +5,11 @@
 Lietuvos ir Lenkijos rinkas.
 Pirmas/trečias asmuo. Kūrimo stadija — veikėjas ir animacijos dar perdaromos.
 
-**Prielaida, kurią darau (pasakyk, jei ne taip):** tikslas — Steam wishlist.
-Cozy/farming simuliatoriai PC rinkoje veikia geriausiai, o wishlist'ai yra
-vienintelis dalykas, lemiantis matomumą išleidimo dieną. Jei taikaisi į
-mobilią rinką, keičiasi tik CTA ir tempas — visa kita galioja.
+**Platforma: telefonas (iOS ir Android).** Tikslas iki išleidimo —
+**pre-registracijos**, ne sekėjai. Google Play pre-registracija yra mobilus
+Steam wishlist'o atitikmuo: Google pats praneša žmogui išleidimo dieną, ir
+tai vienintelis mechanizmas, paverčiantis peržiūras įdiegimais. iOS pusėje
+tą patį daro App Store „Coming Soon" puslapis su pre-order.
 
 ---
 
@@ -40,7 +41,7 @@ padarysi 15 video. Laikyk ją atskirame aplanke su data.
 ## 2. Kalba: anglų kaip pagrindinė
 
 Lietuviškas TikTok yra ~2 mln. žmonių. Cozy/farming sim auditorija anglų
-kalba — dešimtys milijonų. Wishlist'ai ateina iš antrosios.
+kalba — dešimtys milijonų. Įdiegimai ateina iš antrosios.
 
 Tačiau **lietuviškumas yra ne kliūtis, o pats kabliukas.** Rinkoje yra
 šimtai ūkio simuliatorių, bet beveik nėra Baltijos kaimo estetikos.
@@ -65,11 +66,17 @@ Instagram — tas pats video, bet caption dviem kalbomis.
 | Vardas | `@waterssilvercreek` (ar panašiai) | tas pats handle |
 | Rodomas vardas | `Waters of Silver Creek` | tas pats |
 | Bio | žr. 13 skyrių — riba 80 simbolių | žr. 13 skyrių — riba 150 |
-| Nuoroda | Steam puslapis (arba linktr.ee, kol jo nėra) | tas pats |
+| Nuoroda | Google Play pre-registracija (arba linktr.ee su abiem) | tas pats |
 
-**Jei Steam puslapio dar nėra — susikurk jį pirmiausiai, prieš pradedant
-postinti.** Viral'as be vietos, kur nukreipti, yra švaistomas. Steam
-puslapis gali būti be datos, su 5 screenshot'ais ir aprašymu. Užtenka.
+**Jei Google Play pre-registracijos dar nėra — susikurk ją pirmiausiai,
+prieš pradedant postinti.** Viral'as be vietos, kur nukreipti, yra
+švaistomas, o mobilioje rinkoje tai skaudžiau nei PC: telefono žiūrovas
+paspaudžia iš karto arba nebegrįžta niekada.
+
+Pre-registracijai užtenka pavadinimo, ikonos, kelių vaizdų ir aprašymo —
+datos nurodyti nebūtina. Google Play tai leidžia gerokai anksčiau nei
+žaidimas baigtas. iOS „Coming Soon" reikalauja daugiau, tad pradžiai
+užtenka Android.
 
 ---
 
@@ -78,11 +85,11 @@ puslapis gali būti be datos, su 5 screenshot'ais ir aprašymu. Užtenka.
 | Stulpas | Dalis | Kam patinka | Ką duoda |
 |---|---|---|---|
 | **A. Prieš/po, devlog** | 40 % | kiti devai, gamedev auditorija | greitas augimas, pirmieji 1000 sekėjų |
-| **B. Cozy gameplay** | 40 % | cozy sim žaidėjai | wishlist'ai, tikroji auditorija |
+| **B. Cozy gameplay** | 40 % | cozy sim žaidėjai | pre-registracijos, tikroji auditorija |
 | **C. Lietuviškas kampas** | 20 % | lietuviai, diaspora | labai aukštas engagement, dalinimasis |
 
 Pradėk nuo A (turi medžiagos jau dabar), po mėnesio persvark į B, nes
-devai wishlist'ų nededa — jie tik pakelia tave algoritme.
+devai žaidimo neįsidiegs — jie tik pakelia tave algoritme.
 
 ---
 
@@ -104,7 +111,7 @@ Pirmas kadras turi atsakyti „kas čia?" per 1 sekundę.
 | 10–15 s | Diagramėlė: alkūnė nesilanksto | `elbows never bend. it's 4 sticks.` |
 | 15–20 s | Pataisyta animacija | `fixed.` |
 
-**CTA:** `wishlist on steam 🎣`
+**CTA:** `pre-register on google play 🎣`
 **Garsas:** ramus lo-fi, trendinis
 **Pastaba:** šitas video veikia tik jei turi „po" versiją. Jei dar neturi —
 baik ties 15 s su `fixing this today` ir padaryk antrą dalį vėliau.
@@ -163,8 +170,8 @@ Ties 15 s mažas tekstas apačioje:
 `morning on the fish farm 🎣 Lithuanian countryside`
 
 **Kodėl veikia:** cozy auditorija ieško būtent šito. Šis formatas
-nesuteikia daug sekėjų, bet duoda **wishlist'ų** — žiūrovas įsivaizduoja
-save žaidžiantį.
+nesuteikia daug sekėjų, bet duoda **pre-registracijų** — žiūrovas
+įsivaizduoja save žaidžiantį per pertrauką ar autobuse.
 
 Darytina serija: to paties tvenkinio kadras skirtingu oru ir metų laiku.
 
@@ -261,7 +268,7 @@ Naudok 4–6, ne 20.
 - Žvejyba/tvenkinys: `#fishing` `#farmingsim`
 - Cozy kadrai: `#cozygaming` `#wholesomegames`
 - Lietuviškas postas: `#lietuva` `#sodyba` `#lithuania`
-- Steam: `#wishlist` `#steamgames`
+- Mobilus: `#mobilegame` `#androidgames` `#iosgames`
 
 **Aprašymo formulė:**
 `[vienas sakinys apie kadrą] + [klausimas žiūrovui] + [hashtag'ai]`
@@ -287,8 +294,9 @@ Kas savaitę užsirašyk tris skaičius:
 
 1. **Vidutinė peržiūros trukmė** — svarbiausias. Jei mažiau nei 50 %,
    hook'as silpnas, o ne turinys blogas.
-2. **Perėjimai į Steam** (Steam partnerio skydelyje matosi šaltinis)
-3. **Wishlist'ai per savaitę** — vienintelis skaičius, kuris tikrai svarbus
+2. **Perėjimai į parduotuvę** (TikTok analytics rodo nuorodos paspaudimus)
+3. **Pre-registracijos per savaitę** — vienintelis skaičius, kuris tikrai
+   svarbus. Google Play Console jas rodo atskirai.
 
 Sekėjų skaičius yra tuščiavidurė metrika. 5000 gamedev sekėjų, kurie
 niekada nepirks žaidimo, yra mažiau vertingi nei 300 cozy žaidėjų.
@@ -313,9 +321,9 @@ niekada nepirks žaidimo, yra mažiau vertingi nei 300 cozy žaidėjų.
 Šioje sesijoje turiu Higgsfield įrankį (vaizdų ir video generavimas).
 **Gameplay klipams jis netinka ir nepatarčiau.** Bet tinka:
 
-- **Key art** Steam puslapiui ir soc. tinklų profiliui — tvenkinys, rūkas,
+- **Key art** parduotuvės puslapiui ir soc. tinklų profiliui — tvenkinys, rūkas,
   veikėjas su panama prie liepto
-- **Steam capsule** vaizdai (visi reikalingi dydžiai)
+- **Play Store feature graphic** (1024×500) ir ikonos fonas
 - **Fono vaizdai** Instagram Stories šablonams
 
 Pasakyk, jei to reikia — sugeneruosiu. Tai naudos tavo Higgsfield kreditus.
@@ -336,9 +344,9 @@ failai čia, repozitorijoje, neguli.
 | 4 | Rankos laiko upėtakį | 9:16 PNG | dokumentinis, LT ir PL rinkai |
 | 5 | Žuvų turgus ant ledo | 9:16 PNG | prekybos mechanika, trys rinkos |
 | 6 | Rūkykla | 9:16 PNG | lietuviškas kampas |
-| 7 | Ūkis iš viršaus | 16:9 PNG | Steam puslapio fonas |
+| 7 | Ūkis iš viršaus | 16:9 PNG | Play Store feature graphic |
 | 8 | Garnys su žuvimi snape | 9:16 PNG | „nerf the heron" postas |
-| 9 | Key art su pavadinimu | 16:9 PNG | Steam capsule |
+| 9 | Key art su pavadinimu | 16:9 PNG | Play Store feature graphic |
 | 10 | Vertikalus plakatas su pavadinimu | 9:16 PNG | TikTok/IG pirmas kadras |
 | 11 | Wordmark | SVG | logotipas |
 | 12 | Apvalus ženkliukas | SVG | profilio avataras |
@@ -356,15 +364,17 @@ pergeneruoti, o:
 2. Pavadinimą uždėti tikru šriftu (ImageMagick, Figma ar montažo programa)
 
 Taip raidės visada teisingos, šriftą galima keisti, ir ta pati kortelė
-lengvai perdaroma visiems reikalingiems dydžiams (Steam capsule turi
-šešis skirtingus). Galutinėje versijoje verta taip daryti bet kuriuo
-atveju.
+lengvai perdaroma visiems reikalingiems dydžiams (Play Store reikalauja
+ikonos, feature graphic ir kelių screenshot formatų). Galutinėje versijoje
+verta taip daryti bet kuriuo atveju.
 
 ### Naudojimo riba
 
 Šie vaizdai yra fotorealistiški, o žaidimas — ne. Juos galima naudoti kaip
 atmosferos, prekės ženklo ir profilio medžiagą, bet **negalima pateikti kaip
-gameplay**. Steam taisyklės to neleidžia, o TikTok komentaruose pirmas
+gameplay**. Google Play taisyklės to tiesiogiai draudžia — parduotuvės
+medžiaga turi rodyti tikrą žaidimą, o klaidinanti reklama yra pagrindas
+pašalinti aplikaciją. TikTok komentaruose pirmas
 klausimas bus „is this gameplay?". Gameplay turinys turi būti tikri ekrano
 įrašai — žr. 1 skyrių.
 
@@ -372,25 +382,45 @@ klausimas bus „is this gameplay?". Gameplay turinys turi būti tikri ekrano
 
 ## 13. Bio tekstai (patikrinti prieš simbolių ribas)
 
-TikTok bio riba yra **80 simbolių**, Instagram — **150**. Ankstesnis
-juodraštis turėjo 95 ir TikTok'e būtų buvęs nukirptas.
+TikTok bio riba yra **80 simbolių**, Instagram — **150**. Pirmas juodraštis
+turėjo 95 ir TikTok'e būtų buvęs nukirptas.
 
 Bio turi atsakyti tris dalykus per sekundę: kad tai žaidimas, koks jis, ir
 kur jį gauti. Trečiojo dažniausiai pamirštama, o jis svarbiausias.
 
-### TikTok
+### TikTok — galutinis variantas
 
-| Simb. | Variantas | Kada |
-|---|---|---|
-| 66 | `Fish farm sim for your phone 🎣 Trout, catfish & one thieving heron` | mobili versija |
-| 64 | `Cozy fish farm game for phone 🎣 In development. Follow the build` | mobili, dar nebaigta |
-| 65 | `Cozy fish farm sim on Steam 🎣 Trout, catfish & one thieving heron` | Steam |
-| 65 | `Making a cozy fish farm game 🎣 Trout, catfish, one thieving heron` | platforma dar neaiški |
-| 65 | `Solo dev building a fish farm sim 🎣 Watch it go from ugly to done` | devlog kampas |
+```
+Trout, catfish, one thieving heron 🎣 Cozy farm sim. iOS & Android soon
+```
 
-### Instagram
+70 simbolių. Pradeda nuo konkretaus ir juokingo (garnys), tada žanras,
+tada platforma ir laikas. Žiūrovas per sekundę supranta, kad tai žaidimas
+telefonui, kurio dar nėra.
 
-Mobiliai versijai (150 simb.):
+Atsargos: kai kurie skaitikliai emoji skaičiuoja kaip du simbolius. Net ir
+tada telpa — 71 iš 80.
+
+### Kiti tinkami variantai
+
+| Simb. | Variantas |
+|---|---|
+| 71 | `Cozy fish farm sim for your phone 🎣 Trout, catfish & one thieving heron` |
+| 67 | `Raise trout. Outsmart one thieving heron. 🎣 Cozy farm sim for phone` |
+| 68 | `Fish farm sim coming to iOS & Android 🎣 Solo dev, building in public` |
+| 61 | `Building a cozy fish farm game for phone 🎣 iOS & Android soon` |
+| 69 | `Cozy fish farm sim for phone 🎣 In development. Watch it come together` |
+
+Išleidus keisk paskutinę dalį į `Free on iOS & Android ↓`.
+
+### Kiti laukai
+
+| Laukas | Riba | Reikšmė | Telpa |
+|---|---|---|---|
+| Rodomas vardas | 30 | `Waters of Silver Creek` | 22 |
+| Handle | 24 | `@waterssilvercreek` | 17 |
+
+### Instagram (150 simb.)
 
 ```
 Waters of Silver Creek 🎣
@@ -399,18 +429,7 @@ Raise trout and catfish. Guard them from one thieving heron.
 Coming to mobile ↓
 ```
 
-Steam versijai (146 simb.) — paskutinė eilutė keičiama į `Wishlist on Steam ↓`.
-
-Devlog versijai (144 simb.) — dvi paskutinės eilutės keičiamos į
-`New devlog every week. Still ugly. That's the fun part.`
-
-### Neišspręsta: platforma
-
-Nuo to priklauso ne tik bio paskutinė eilutė, bet ir visų video CTA bei
-turinio tempas. Mobiliems žaidimams reikia greitesnio montažo ir
-„download now"; Steam'ui — lėtesnio, gražesnio ir „wishlist now".
-
----
+Lygiai 150. Išleidus paskutinę eilutę keisk į `Free on iOS & Android ↓`.
 
 ## 14. Antra vaizdų partija ir video
 
@@ -438,7 +457,7 @@ Nr. 22 TikTok'e veikia geriausiai — prie tokio kadro akis sustoja savaime.
 | # | Klipas | Šaltinis | Vaidmuo |
 |---|---|---|---|
 | 101 | Upėtakio šuolis sulėtintai | vaizdas 1 | hook — sustabdo scrollinimą |
-| 102 | Rūkas slenka virš tvenkinio | vaizdas 3 | cozy — duoda wishlist'ų |
+| 102 | Rūkas slenka virš tvenkinio | vaizdas 3 | cozy — duoda pre-registracijų |
 | 103 | Garnys pakyla su žuvimi snape | vaizdas 8 | juokingas — duoda komentarų |
 
 Klipai daryti iš tų pačių kadrų, kurie buvo palikti, kad stilius sutaptų.
