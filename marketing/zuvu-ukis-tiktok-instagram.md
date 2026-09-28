@@ -465,3 +465,107 @@ Garsas generuotas kartu — vandens pliaukštelėjimas, sparnų kirtis, paukšč
 be muzikos. Muziką dėti jau montuojant, pagal tuo metu veikiantį trendą.
 
 Tas pats įspėjimas galioja: tai atmosferos medžiaga, ne gameplay.
+
+---
+
+## 15. Trijų klipų paleidimas: aprašymai ir laikas
+
+### Rizika, kurią reikia uždengti pirmiausia
+
+Trys sugeneruoti klipai yra fotorealistiški gamtos kadrai. Juose nėra jokio
+signalo, kad tai žaidimas. Paleisti tokie, kokie yra, jie nurodys TikTok
+algoritmui priskirti paskyrą žvejybos ir gamtos turiniui, ir ji bus rodoma
+žvejams, ne žaidėjams. Peržiūrų gali būti daug, įdiegimų nebus, o kartą
+priskyręs auditoriją algoritmas persigalvoja sunkiai.
+
+Todėl kiekviename klipe **pirmose dviejose sekundėse privalo būti tekstas
+ekrane, sakantis, kad tai žaidimas.** Tai daroma ne žiūrovui, o algoritmui.
+
+### Klipas 101 — upėtakio šuolis (pirmas)
+
+Tekstas ekrane 0–2 s: `my fish farm game finally has fish`
+
+```
+Been building a cozy fish farm sim for phone. This is the trout pond.
+What fish should I add next? 🎣
+
+#indiegame #gamedev #cozygame #mobilegame #devlog
+```
+
+### Klipas 103 — garnys (po dviejų dienų)
+
+Tekstas ekrane 0–2 s: `added a heron to my game. he steals your fish.`
+
+```
+Added herons to my fish farm game. They steal fish. Worst and best
+decision so far. Should I let you scare them off? 🎣
+
+#indiegame #gamedev #cozygame #mobilegame
+```
+
+### Klipas 102 — rūkas virš tvenkinio (po dar dviejų)
+
+Tekstas ekrane 0–2 s: `5am on the fish farm 🎣 iOS & Android soon`
+
+```
+Morning on the farm in my cozy fish sim. Coming to iOS and Android.
+What time of day should the game start at? 🎣
+
+#cozygame #indiegame #mobilegame #wholesomegames
+```
+
+Kiekvienas aprašymas baigiasi klausimu — komentaras algoritmui sveria
+daugiau nei like'as, o klausimas yra pigiausias būdas jį gauti.
+
+Klipai leidžiami po vieną kas dvi dienas, ne visi kartu: kitaip nebus
+aišku, kuris suveikė.
+
+### Laikas
+
+Rinkos yra JAV, Lietuva ir Lenkija. JAV pikas yra 19:00–22:00 Rytų zona,
+o tai Lietuvoje 3:00–6:00 ryto. Konfliktas realus ir sprendžiamas
+sąmoningai.
+
+**Pirmoms dviem savaitėms: 19:00–21:00 Lietuvos laiku.** Pataiko į
+Lietuvos ir Lenkijos vakarą, o JAV tuo metu yra 12:00–14:00 ET — antras
+pagal stiprumą pikas.
+
+Svarbiau už patį laiką: **buvimas prie telefono pirmą valandą po
+paskelbimo.** Atsakymai į komentarus per pirmą valandą tiesiogiai veikia,
+kiek toli nukeliaus video. Blogesnis laikas budriam yra geriau nei
+geresnis laikas miegant.
+
+Po dviejų savaičių laiką reikia keisti pagal savo duomenis: Business
+account → Analytics → Followers rodo, kada sekėjai realiai aktyvūs. Tai
+patikimiau už bet kokią bendrą rekomendaciją.
+
+Jei vis dėlto taikoma į JAV naktį — TikTok planavimas veikia per naršyklę
+kompiuteryje iki 10 dienų į priekį; Instagram Reels planuojasi per Meta
+Business Suite.
+
+---
+
+## 16. Profilio nuotraukos variantai
+
+Pirmasis pasiūlymas buvo abstraktus ženkliukas (vaizdas 12). Vėliau
+pasirinkta kryptis su vyru ant liepto, kaip vaizde 10 — estetiškai
+stipresnė, nes turi nuotaiką, kurios logotipas neturi.
+
+Vaizdas 10 avatarui netinka tiesiogiai: figūra jame maža ir toli, o
+apkirpus į 40 pikselių apskritimą lieka dėmė. Todėl ta pati idėja
+perdaryta kvadratui:
+
+| # | Variantas | Rizika mažame dydyje |
+|---|---|---|
+| 31 | Tamsus siluetas per visą kadrą, šviečiantis rūkas už nugaros | maža — didžiausias kontrastas |
+| 32 | Artimas planas nuo juosmens, šilta šviesa ant skrybėlės krašto | didesnė — minkšti perėjimai gali susilieti |
+| 33 | Plokščias vektorius, trys spalvos, meškerė, saulės diskas | jokios — bet ir nuobodžiausias |
+
+**Testas prieš pasirenkant:** atsidaryk vaizdą telefone ir atitrauk ranką
+per visą ilgį. Jei vis dar matai, kad ten žmogus ant liepto — tinka. Jei
+virto dėme — ne. Būtent tokiu dydžiu avatarą mato kiekvienas žmogus feed'e.
+
+Wordmark (vaizdas 11) avatarui netinka niekada — raidės susilieja. Jis
+skirtas parduotuvės puslapiui, video pabaigos kadrui ir Stories šablonams.
+
+Techniškai: abi platformos SVG nepriima, tad įkelti reikia PNG 1080×1080.
