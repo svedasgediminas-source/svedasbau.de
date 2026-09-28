@@ -1,6 +1,8 @@
-# Žuvų ūkis — TikTok ir Instagram planas
+# Waters of Silver Creek — TikTok ir Instagram planas
 
-**Žaidimas:** 3D simuliatorius, lietuviška sodyba, žuvų ūkis prie tvenkinio.
+**Žaidimas:** *Waters of Silver Creek* — 3D simuliatorius, lietuviška sodyba,
+žuvų ūkis prie tvenkinio. Veisiami upėtakiai ir šamai, parduodama į JAV,
+Lietuvos ir Lenkijos rinkas.
 Pirmas/trečias asmuo. Kūrimo stadija — veikėjas ir animacijos dar perdaromos.
 
 **Prielaida, kurią darau (pasakyk, jei ne taip):** tikslas — Steam wishlist.
@@ -60,9 +62,9 @@ Instagram — tas pats video, bet caption dviem kalbomis.
 
 | Laukas | TikTok | Instagram |
 |---|---|---|
-| Vardas | `@[zaidimo_pavadinimas]` | tas pats handle |
-| Rodomas vardas | `[Pavadinimas] — fish farm sim` | tas pats |
-| Bio | `Building a fish farm sim set in the Baltic countryside 🎣 Solo dev` | + `Wishlist ↓` |
+| Vardas | `@waterssilvercreek` (ar panašiai) | tas pats handle |
+| Rodomas vardas | `Waters of Silver Creek` | tas pats |
+| Bio | `Trout, catfish and one thieving heron. A fish farm sim set in the Baltic countryside 🎣 Solo dev` | + `Wishlist ↓` |
 | Nuoroda | Steam puslapis (arba linktr.ee, kol jo nėra) | tas pats |
 
 **Jei Steam puslapio dar nėra — susikurk jį pirmiausiai, prieš pradedant
@@ -317,3 +319,51 @@ niekada nepirks žaidimo, yra mažiau vertingi nei 300 cozy žaidėjų.
 - **Fono vaizdai** Instagram Stories šablonams
 
 Pasakyk, jei to reikia — sugeneruosiu. Tai naudos tavo Higgsfield kreditus.
+
+---
+
+## 12. Sugeneruoti vaizdai (Higgsfield, recraft_v4_1)
+
+Atsisiųsti reikia iš Higgsfield galerijos — šios sesijos konteineris
+CloudFront hosto pasiekti negali (tinklo politika atmeta su 403), todėl
+failai čia, repozitorijoje, neguli.
+
+| # | Vaizdas | Formatas | Paskirtis |
+|---|---|---|---|
+| 1 | Upėtakis šoka iš rūko | 9:16 PNG | TikTok hook, Stories fonas |
+| 2 | Šamas po vandeniu | 9:16 PNG | tamsūs, dramatiški postai |
+| 3 | Tvenkinys auštant | 9:16 PNG | universalus cozy fonas |
+| 4 | Rankos laiko upėtakį | 9:16 PNG | dokumentinis, LT ir PL rinkai |
+| 5 | Žuvų turgus ant ledo | 9:16 PNG | prekybos mechanika, trys rinkos |
+| 6 | Rūkykla | 9:16 PNG | lietuviškas kampas |
+| 7 | Ūkis iš viršaus | 16:9 PNG | Steam puslapio fonas |
+| 8 | Garnys su žuvimi snape | 9:16 PNG | „nerf the heron" postas |
+| 9 | Key art su pavadinimu | 16:9 PNG | Steam capsule |
+| 10 | Vertikalus plakatas su pavadinimu | 9:16 PNG | TikTok/IG pirmas kadras |
+| 11 | Wordmark | SVG | logotipas |
+| 12 | Apvalus ženkliukas | SVG | profilio avataras |
+
+### Neišspręsta: teksto tikslumas
+
+Vaizdai 9, 10 ir 11 turi įrašytą pavadinimą, bet **jis nepatikrintas** —
+sesija šių failų atsisiųsti negali, todėl niekas jų neperžiūrėjo.
+Generatyviniai modeliai reguliariai iškraipo raides.
+
+Patikrink tuos tris. Jei tekstas sugadintas, teisingas sprendimas yra ne
+pergeneruoti, o:
+
+1. Sugeneruoti tą patį foną **be jokio teksto**
+2. Pavadinimą uždėti tikru šriftu (ImageMagick, Figma ar montažo programa)
+
+Taip raidės visada teisingos, šriftą galima keisti, ir ta pati kortelė
+lengvai perdaroma visiems reikalingiems dydžiams (Steam capsule turi
+šešis skirtingus). Galutinėje versijoje verta taip daryti bet kuriuo
+atveju.
+
+### Naudojimo riba
+
+Šie vaizdai yra fotorealistiški, o žaidimas — ne. Juos galima naudoti kaip
+atmosferos, prekės ženklo ir profilio medžiagą, bet **negalima pateikti kaip
+gameplay**. Steam taisyklės to neleidžia, o TikTok komentaruose pirmas
+klausimas bus „is this gameplay?". Gameplay turinys turi būti tikri ekrano
+įrašai — žr. 1 skyrių.
