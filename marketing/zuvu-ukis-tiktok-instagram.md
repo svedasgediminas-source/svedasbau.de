@@ -64,7 +64,7 @@ Instagram — tas pats video, bet caption dviem kalbomis.
 |---|---|---|
 | Vardas | `@waterssilvercreek` (ar panašiai) | tas pats handle |
 | Rodomas vardas | `Waters of Silver Creek` | tas pats |
-| Bio | `Trout, catfish and one thieving heron. A fish farm sim set in the Baltic countryside 🎣 Solo dev` | + `Wishlist ↓` |
+| Bio | žr. 13 skyrių — riba 80 simbolių | žr. 13 skyrių — riba 150 |
 | Nuoroda | Steam puslapis (arba linktr.ee, kol jo nėra) | tas pats |
 
 **Jei Steam puslapio dar nėra — susikurk jį pirmiausiai, prieš pradedant
@@ -367,3 +367,82 @@ atmosferos, prekės ženklo ir profilio medžiagą, bet **negalima pateikti kaip
 gameplay**. Steam taisyklės to neleidžia, o TikTok komentaruose pirmas
 klausimas bus „is this gameplay?". Gameplay turinys turi būti tikri ekrano
 įrašai — žr. 1 skyrių.
+
+---
+
+## 13. Bio tekstai (patikrinti prieš simbolių ribas)
+
+TikTok bio riba yra **80 simbolių**, Instagram — **150**. Ankstesnis
+juodraštis turėjo 95 ir TikTok'e būtų buvęs nukirptas.
+
+Bio turi atsakyti tris dalykus per sekundę: kad tai žaidimas, koks jis, ir
+kur jį gauti. Trečiojo dažniausiai pamirštama, o jis svarbiausias.
+
+### TikTok
+
+| Simb. | Variantas | Kada |
+|---|---|---|
+| 66 | `Fish farm sim for your phone 🎣 Trout, catfish & one thieving heron` | mobili versija |
+| 64 | `Cozy fish farm game for phone 🎣 In development. Follow the build` | mobili, dar nebaigta |
+| 65 | `Cozy fish farm sim on Steam 🎣 Trout, catfish & one thieving heron` | Steam |
+| 65 | `Making a cozy fish farm game 🎣 Trout, catfish, one thieving heron` | platforma dar neaiški |
+| 65 | `Solo dev building a fish farm sim 🎣 Watch it go from ugly to done` | devlog kampas |
+
+### Instagram
+
+Mobiliai versijai (150 simb.):
+
+```
+Waters of Silver Creek 🎣
+Cozy fish farm sim in the Baltic countryside.
+Raise trout and catfish. Guard them from one thieving heron.
+Coming to mobile ↓
+```
+
+Steam versijai (146 simb.) — paskutinė eilutė keičiama į `Wishlist on Steam ↓`.
+
+Devlog versijai (144 simb.) — dvi paskutinės eilutės keičiamos į
+`New devlog every week. Still ugly. That's the fun part.`
+
+### Neišspręsta: platforma
+
+Nuo to priklauso ne tik bio paskutinė eilutė, bet ir visų video CTA bei
+turinio tempas. Mobiliems žaidimams reikia greitesnio montažo ir
+„download now"; Steam'ui — lėtesnio, gražesnio ir „wishlist now".
+
+---
+
+## 14. Antra vaizdų partija ir video
+
+Iš pirmosios partijos buvo ištrinti žuvų turgus ir rūkykla — abu su
+interjeru ir prekyba. Antroji partija laikosi to, kas liko: vanduo,
+gamta, žuvys.
+
+| # | Vaizdas | Formatas |
+|---|---|---|
+| 13 | Karpis po vandeniu, auksiniai žvynai | 9:16 |
+| 14 | Lydeka nendrėse | 9:16 |
+| 15 | Ešerių būrelis seklumoje | 9:16 |
+| 16 | Eršketas virš dugno | 9:16 |
+| 17 | Mailiaus spiečius | 9:16 |
+| 18 | Šėrimas — vanduo verda nuo žuvų | 9:16 |
+| 19 | Tinklas keliamas iš vandens | 9:16 |
+| 20 | Ungurys tamsiame vandenyje | 9:16 |
+| 21 | Eketė užšalusiame tvenkinyje | 9:16 |
+| 22 | Kadras pusiau virš, pusiau po vandeniu | 9:16 |
+
+Nr. 22 TikTok'e veikia geriausiai — prie tokio kadro akis sustoja savaime.
+
+### Video (Kling 2.6, 10 s, 1080×1920, su garsu)
+
+| # | Klipas | Šaltinis | Vaidmuo |
+|---|---|---|---|
+| 101 | Upėtakio šuolis sulėtintai | vaizdas 1 | hook — sustabdo scrollinimą |
+| 102 | Rūkas slenka virš tvenkinio | vaizdas 3 | cozy — duoda wishlist'ų |
+| 103 | Garnys pakyla su žuvimi snape | vaizdas 8 | juokingas — duoda komentarų |
+
+Klipai daryti iš tų pačių kadrų, kurie buvo palikti, kad stilius sutaptų.
+Garsas generuotas kartu — vandens pliaukštelėjimas, sparnų kirtis, paukščiai,
+be muzikos. Muziką dėti jau montuojant, pagal tuo metu veikiantį trendą.
+
+Tas pats įspėjimas galioja: tai atmosferos medžiaga, ne gameplay.
