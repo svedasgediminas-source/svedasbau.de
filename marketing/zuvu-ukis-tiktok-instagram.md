@@ -569,3 +569,70 @@ Wordmark (vaizdas 11) avatarui netinka niekada — raidės susilieja. Jis
 skirtas parduotuvės puslapiui, video pabaigos kadrui ir Stories šablonams.
 
 Techniškai: abi platformos SVG nepriima, tad įkelti reikia PNG 1080×1080.
+
+---
+
+## 17. Taikinys: JAV (pakeičia 2, 4, 6 ir 15 skyrius)
+
+Lietuvos ir Lenkijos rinkos iš plano išimamos — jos tvarkomos atskirai ir
+šiam kanalui neaktualios. Viskas žemiau turi pirmenybę prieš ankstesnius
+skyrius.
+
+### Laikas
+
+Patikrinta per zoneinfo, ne iš atminties:
+
+| JAV pikas | Lietuvos laikas | Tinka postinti gyvai |
+|---|---|---|
+| 11:00–13:00 ET (vidurdienis) | **18:00–20:00 LT** | taip |
+| 19:00–21:00 ET (vakaras) | 02:00–04:00 LT | ne, tik planuojant |
+
+**Pagrindinis langas: 18:00–20:00 LT.** Pataiko į JAV pietų pertrauką ir
+leidžia būti prie telefono pirmą valandą po paskelbimo, o tai svarbiau už
+stipresnį, bet prameigotą vakaro piką.
+
+JAV vakaro pikas stipresnis, bet reikalauja planavimo per TikTok naršyklėje
+ir palieka komentarus be atsako. Pradžiai neverta; verta testuoti, kai bus
+nusistovėjęs ritmas.
+
+**Laiko keitimo spąstai 2026:** Lietuva persuka laikrodį spalio 25 d., JAV —
+lapkričio 1 d. Tarp šių datų skirtumas yra 6 valandos, ne 7, ir langas
+pasislenka į **17:00–19:00 LT**. Nuo lapkričio 2 grįžta į 18:00–20:00.
+
+Geriausios dienos: antradienis, trečiadienis, ketvirtadienis.
+
+### Turinio stulpai
+
+Lietuviškas stulpas išimamas. Jo vietoje — JAV žvejybos kultūra.
+
+| Stulpas | Dalis |
+|---|---|
+| Devlog, prieš/po | 40 % |
+| Cozy gameplay | 45 % |
+| JAV žvejybos kultūra | 15 % |
+
+### Kodėl bass
+
+Amerikiečių gėlavandenės žvejybos hierarchija nesutampa su lietuviška.
+Pirmas ten yra **largemouth bass** — atskira kultūra su turnyrais ir
+milžiniška auditorija socialiniuose tinkluose. Antras — **šamas**, ypač
+pietinėse valstijose, kur šamų ūkiai Misisipės deltoje yra reali pramonė.
+Upėtakis trečias, daugiausia kalnų valstijose.
+
+Šamai žaidime jau yra, ir tai stiprus kozyris JAV rinkai. Largemouth bass
+įdėjimas atvertų kelią į didžiausią JAV gėlavandenės auditoriją ir derėtų
+su žaidimo logika: „stock your pond" ten yra įprasta praktika ir įprasta
+frazė.
+
+### Hashtag'ai
+
+Bazė nesikeičia: `#indiegame` `#cozygame` `#mobilegame` `#gamedev`
+
+Vietoj lietuviškų — pagal turinį vienas iš: `#bassfishing` `#pondlife`
+`#fishfarm` `#catfish`
+
+### Bio
+
+Keisti nereikia. TikTok variante geografijos nėra, o Instagram bio
+„Baltic countryside" veikia kaip smulkus skiriamasis bruožas, ne kaip
+pagrindinis argumentas — amerikiečiui jis mažai ką sako, bet ir netrukdo.
