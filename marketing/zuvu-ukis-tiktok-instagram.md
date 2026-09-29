@@ -636,3 +636,89 @@ Vietoj lietuviškų — pagal turinį vienas iš: `#bassfishing` `#pondlife`
 Keisti nereikia. TikTok variante geografijos nėra, o Instagram bio
 „Baltic countryside" veikia kaip smulkus skiriamasis bruožas, ne kaip
 pagrindinis argumentas — amerikiečiui jis mažai ką sako, bet ir netrukdo.
+
+---
+
+## 18. Kas realiai renka peržiūras (tyrimas) ir antra klipų trijulė
+
+### Ką sako duomenys
+
+Pagrindinė išvada: **formatas svarbiau už turinį.** Tas pats gameplay
+kadras gali surinkti 500 arba 500 000 peržiūrų, priklausomai nuo
+pateikimo. Hook'ui yra viena sekundė — auditorija naudoja TikTok kaip
+Tinder ir kiekvienam klipui duoda sekundę.
+
+Geriausiai veikiančios kategorijos:
+
+| Kategorija | Kodėl veikia |
+|---|---|
+| Satisfying mechanika | pakartotinės peržiūros, ilga žiūrėjimo trukmė |
+| Juokingos akimirkos | komentarai, dalinimasis |
+| Prieš/po transformacija | aiški pabaiga, žiūrima iki galo |
+| **Bug'ų demonstracijos** | žmonės mėgsta matyti, kas sugedo |
+
+Bug'ai šiam projektui ypač aktualūs: mosuojantis veikėjas ir plokščias
+diskas vietoj skrybėlės yra ne gėda, o paruoštas turinys.
+
+**Nemalonus faktas:** TikTok organinis pasiekiamumas žaidimų kūrėjams nuo
+2025 tapo nenuspėjamas, platforma linksta į mokamą reklamą. Vieno viral'o
+planuoti negalima — planuojamas ritmas, o viral'as laikomas premija.
+
+Taikliausia mintis iš viso tyrimo: strategija yra ne „daryk TikTok'us", o
+**„daryk žaidimą, apie kurį žmonės norės daryti TikTok'us"**. Garnys,
+vagiantis žuvį, yra tokia mechanika. Largemouth bass būtų antra.
+
+Šaltiniai: [cloutboost](https://www.cloutboost.com/blog/tiktoks-changing-landscape-for-game-marketing-in-2026-what-developers-need-to-know),
+[gtstu](https://gtstu.com/indie-game-devlog-audience-growth-youtube-tiktok/),
+[viryze](https://viryze.com/blog/tiktok-gaming-trends-2026),
+[howtomarketagame](https://howtomarketagame.com/2022/02/07/seven-great-tips-for-marketing-your-indie-game-on-tiktok/),
+[presskit.gg](https://presskit.gg/field-guides/tiktok-indie-game-marketing),
+[Victoria Tran apie Unpacking](https://www.victoriatran.com/writing/unpacking-tiktok-strategy),
+[gamedeveloper.com](https://www.gamedeveloper.com/game-platforms/from-400-to-20-000-wishlists-with-1-video-how-tiktok-can-make-your-game-go-viral)
+
+### Virality Predictor: neperskaityta
+
+Visi trys pirmieji klipai buvo paleisti per Higgsfield Virality Predictor
+ir skaičiavimai baigti, bet **rezultatų šioje sesijoje perskaityti
+nepavyko** — skydeliai yra HTML failai tame pačiame CloudFront hoste, kurį
+blokuoja ir konteineris, ir WebFetch. Skydelius reikia atsidaryti pačiam
+ir pasižiūrėti hook strength įvertinimus.
+
+### Antra klipų trijulė
+
+Parinkta pagal pirmos sekundės stiprumą.
+
+| # | Klipas | Kategorija | Šaltinis |
+|---|---|---|---|
+| 104 | Šėrimas — vanduo sprogsta nuo žuvų | satisfying + judesys nuo 0 s | vaizdas 18 |
+| 105 | Tinklas kyla iš vandens | satisfying | vaizdas 19 |
+| 106 | Kadras pusiau po vandeniu | neįprastas vaizdas | vaizdas 22 |
+
+**104 — šėrimas.** Tekstas ekrane: `feeding time in my fish farm game`
+
+```
+Feeding time in the fish sim I'm building. Sound on.
+How many fish is too many? 🎣
+
+#indiegame #cozygame #mobilegame #oddlysatisfying
+```
+
+**105 — tinklas.** Tekstas ekrane: `harvest day in my fish farm game`
+
+```
+Harvest day in my fish farm game. Months of raising them for this.
+Satisfying or stressful? 🎣
+
+#indiegame #gamedev #cozygame #mobilegame
+```
+
+**106 — po vandeniu.** Tekstas ekrane: `you can see under the water in my game`
+
+```
+Spent a week on the underwater view for my fish farm sim. Worth it? 🎣
+
+#indiegame #cozygame #mobilegame #gamedev
+```
+
+Ta pati taisyklė galioja visiems trims: be teksto ekrane pirmose dviejose
+sekundėse algoritmas priskirs paskyrą gamtos turiniui, ne žaidimams.
