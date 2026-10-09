@@ -722,3 +722,60 @@ Spent a week on the underwater view for my fish farm sim. Worth it? 🎣
 
 Ta pati taisyklė galioja visiems trims: be teksto ekrane pirmose dviejose
 sekundėse algoritmas priskirs paskyrą gamtos turiniui, ne žaidimams.
+
+---
+
+## 19. Trukmės taisyklė
+
+**10 sekundžių yra maksimumas.** Ilgesnių klipų nedaryti — nei
+transformacijų, nei audros, nei nieko. 15 s variantai atmesti.
+
+5 s variantai leidžiami, bet tik paprašius atskirai. Pagrindimas, jei kada
+prireiks: TikTok vertina užbaigtumo procentą, tad nuotaikos kadrams, kuriuose
+nieko neatsitinka, 5 s dažnai veikia geriau nei 10. Veiksmo klipams
+(šuolis, pakilimas, šėrimas, tinklas) 10 s reikalingos — kulminacija
+netelpa į trumpesnį.
+
+Visi dvylika esamų klipų yra 10 s, 1080×1920, su garsu.
+
+---
+
+## 20. Trečia klipų partija (JAV taikinys)
+
+| # | Klipas | Formatas | Modelis |
+|---|---|---|---|
+| 107 | POV: rankos barsto lesinimą, žuvys kyla | POV | kling2_6 |
+| 108 | Tvenkinio statyba: laukas → vanduo → lieptas | transformacija | kling3_0 |
+| 109 | Milžiniškas šamas, ranka masteliui | masto atskleidimas | kling2_6 |
+| 110 | Audra artinasi per vandenį | įtampa | kling2_6 |
+| 111 | Bass kerta į kamerą | JAV kabliukas | kling2_6 |
+| 112 | Metų laikai: vasara → ruduo → eketė | transformacija | kling3_0 |
+
+108 ir 112 darytos su Kling 3.0, nes jis priima ir pradžios, ir pabaigos
+kadrą — perėjimas tikras, o ne išgalvotas. 112 pabaiga yra tas pats žiemos
+kadras (vaizdas 21), tad serija vizualiai susikabina.
+
+POV formatas pasirinktas neatsitiktinai: tai vienas patvariausių TikTok
+formatų, o žaidimas turi pirmo asmens režimą, tad vėliau tą patį kadrą bus
+galima pakartoti tikru gameplay įrašu.
+
+### Publikavimo apribojimai
+
+**TikTok API neturi planavimo.** Yra tik DIRECT_POST (skelbia iš karto) ir
+UPLOAD_TO_DRAFT (į draft'us). Laiko nustatymas galimas tik pačiame TikTok
+naršyklėje. Paruošti postą su caption'u ir nustatymais galima, bet
+paleidimo momentą valdo žmogus.
+
+**Instagram jungties nėra.** Patikrinta: Higgsfield turi tik TikTok, o
+claude.ai jungtyse ir MCP registre nėra nė vieno įrankio, skelbiančio į
+Instagram. Reels keliami rankomis arba per Meta Business Suite, kuris
+planavimą turi. Nekelti failo su TikTok vandens žyme — Instagram tokius
+slopina.
+
+### Trendinė muzika
+
+TikTok paskyra prijungta, tad trendinės muzikos sąrašą galima paimti
+realiai, pagal šalį ir laikotarpį. 2026-10-09 JAV chill kategorijos
+viršūnė: Late Spring (BCD Studio), Stay Close to Me (Muspace), Sour Gin
+Fizz Lofi (Muspace Lofi) — visa viršūnė lo-fi, o tai patvirtina cozy
+kryptį. Sąrašą atnaujinti prieš kiekvieną postą: takeliai gyvena 7–10 dienų.
