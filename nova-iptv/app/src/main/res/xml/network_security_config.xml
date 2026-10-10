@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Cleartext (http://) is permitted app-wide because a large share of IPTV playlists, EPG
+    sources and live streams (HLS, MPEG-TS) are only served over plain HTTP by providers, and
+    the host names are user-supplied, so they cannot be listed in domain-config in advance.
+    Certificates are validated normally for https; user-installed CAs are NOT trusted.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

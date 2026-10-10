@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="livetv_categories_title">Kategorien</string>
+    <string name="livetv_category_all">Alle Sender</string>
+    <string name="livetv_category_favorites">Favoriten</string>
+    <string name="livetv_category_ungrouped">Ohne Gruppe</string>
+    <string name="livetv_catchup_badge">Archiv</string>
+    <string name="livetv_no_epg">Keine Programminformationen</string>
+    <string name="livetv_search_hint">Sender filtern</string>
+    <string name="livetv_preview_hint">Zum Ansehen OK drücken</string>
+    <string name="livetv_now">Jetzt</string>
+    <string name="livetv_next">Danach</string>
+    <string name="livetv_empty_title">Noch keine Sender</string>
+    <string name="livetv_empty_message">Füge unter Einstellungen → Playlists eine Playlist hinzu, um loszulegen.</string>
+    <string name="livetv_empty_category">Keine Sender in dieser Kategorie</string>
+    <string name="livetv_empty_favorites_title">Keine Lieblingssender</string>
+    <string name="livetv_empty_favorites_message">Halte in der Senderliste OK gedrückt oder drücke MENU, um einen Sender zu den Favoriten hinzuzufügen.</string>
+    <string name="livetv_no_results">Keine Sender für „%1$s“</string>
+    <string name="livetv_hint_controls">OK: ansehen · OK halten / MENU: Favorit · 0–9: Sendernummer</string>
+    <string name="livetv_number_entry">Sender %1$s</string>
+    <string name="livetv_number_not_found">Sender %1$d nicht gefunden</string>
+    <string name="livetv_favorite_added">„%1$s“ zu den Favoriten hinzugefügt</string>
+    <string name="livetv_favorite_removed">„%1$s“ aus den Favoriten entfernt</string>
+    <plurals name="livetv_catchup_days">
+        <item quantity="one">Archiv: %1$d Tag</item>
+        <item quantity="other">Archiv: %1$d Tage</item>
+    </plurals>
+</resources>

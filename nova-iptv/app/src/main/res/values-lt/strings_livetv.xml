@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="livetv_categories_title">Kategorijos</string>
+    <string name="livetv_category_all">Visi kanalai</string>
+    <string name="livetv_category_favorites">Mėgstami</string>
+    <string name="livetv_category_ungrouped">Be grupės</string>
+    <string name="livetv_catchup_badge">Archyvas</string>
+    <string name="livetv_no_epg">Nėra programos informacijos</string>
+    <string name="livetv_search_hint">Filtruoti kanalus</string>
+    <string name="livetv_preview_hint">Paspauskite OK, kad žiūrėtumėte</string>
+    <string name="livetv_now">Dabar</string>
+    <string name="livetv_next">Toliau</string>
+    <string name="livetv_empty_title">Kanalų dar nėra</string>
+    <string name="livetv_empty_message">Pridėkite grojaraštį skiltyje Nustatymai → Grojaraščiai ir pradėkite žiūrėti.</string>
+    <string name="livetv_empty_category">Šioje kategorijoje kanalų nėra</string>
+    <string name="livetv_empty_favorites_title">Mėgstamų kanalų nėra</string>
+    <string name="livetv_empty_favorites_message">Kanalų sąraše palaikykite OK arba paspauskite MENU, kad pridėtumėte kanalą prie mėgstamų.</string>
+    <string name="livetv_no_results">Pagal „%1$s“ kanalų nerasta</string>
+    <string name="livetv_hint_controls">OK – žiūrėti · Palaikykite OK / MENU – mėgstami · 0–9 – kanalo numeris</string>
+    <string name="livetv_number_entry">Kanalas %1$s</string>
+    <string name="livetv_number_not_found">Kanalas %1$d nerastas</string>
+    <string name="livetv_favorite_added">„%1$s“ pridėtas prie mėgstamų</string>
+    <string name="livetv_favorite_removed">„%1$s“ pašalintas iš mėgstamų</string>
+    <plurals name="livetv_catchup_days">
+        <item quantity="one">Archyvas: %1$d diena</item>
+        <item quantity="few">Archyvas: %1$d dienos</item>
+        <item quantity="many">Archyvas: %1$d dienos</item>
+        <item quantity="other">Archyvas: %1$d dienų</item>
+    </plurals>
+</resources>

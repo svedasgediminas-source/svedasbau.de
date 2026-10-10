@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="livetv_categories_title">Категории</string>
+    <string name="livetv_category_all">Все каналы</string>
+    <string name="livetv_category_favorites">Избранное</string>
+    <string name="livetv_category_ungrouped">Без группы</string>
+    <string name="livetv_catchup_badge">Архив</string>
+    <string name="livetv_no_epg">Нет информации о программе</string>
+    <string name="livetv_search_hint">Фильтр каналов</string>
+    <string name="livetv_preview_hint">Нажмите OK для просмотра</string>
+    <string name="livetv_now">Сейчас</string>
+    <string name="livetv_next">Далее</string>
+    <string name="livetv_empty_title">Каналов пока нет</string>
+    <string name="livetv_empty_message">Добавьте плейлист в разделе Настройки → Плейлисты, чтобы начать просмотр.</string>
+    <string name="livetv_empty_category">В этой категории нет каналов</string>
+    <string name="livetv_empty_favorites_title">Нет избранных каналов</string>
+    <string name="livetv_empty_favorites_message">В списке каналов удерживайте OK или нажмите MENU, чтобы добавить канал в избранное.</string>
+    <string name="livetv_no_results">По запросу «%1$s» каналы не найдены</string>
+    <string name="livetv_hint_controls">OK — смотреть · Удерживать OK / MENU — избранное · 0–9 — номер канала</string>
+    <string name="livetv_number_entry">Канал %1$s</string>
+    <string name="livetv_number_not_found">Канал %1$d не найден</string>
+    <string name="livetv_favorite_added">«%1$s» добавлен в избранное</string>
+    <string name="livetv_favorite_removed">«%1$s» удалён из избранного</string>
+    <plurals name="livetv_catchup_days">
+        <item quantity="one">Архив: %1$d день</item>
+        <item quantity="few">Архив: %1$d дня</item>
+        <item quantity="many">Архив: %1$d дней</item>
+        <item quantity="other">Архив: %1$d дня</item>
+    </plurals>
+</resources>

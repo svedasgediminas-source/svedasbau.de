@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="guide_title">TV Guide</string>
+    <string name="guide_now_button">Now</string>
+    <string name="guide_today">Today</string>
+    <string name="guide_yesterday">Yesterday</string>
+    <string name="guide_tomorrow">Tomorrow</string>
+    <string name="guide_duration_minutes">%1$d min</string>
+    <string name="guide_no_programme">No programme information</string>
+    <string name="guide_loading">Loading…</string>
+    <string name="guide_archive_unavailable">Archive not available for this channel</string>
+    <string name="guide_archive_expired">This programme is no longer in the archive</string>
+    <string name="guide_upcoming">Starts at %1$s. Reminders are coming in a future update.</string>
+    <string name="guide_live_badge">LIVE</string>
+    <string name="guide_archive_badge">ARCHIVE</string>
+    <string name="guide_empty_title">No TV guide yet</string>
+    <string name="guide_empty_message">Add a playlist with an EPG source in Settings → Playlists.</string>
+    <string name="guide_no_channels_title">No channels in this playlist</string>
+</resources>

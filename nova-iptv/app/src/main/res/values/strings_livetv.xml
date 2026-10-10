@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="livetv_categories_title">Categories</string>
+    <string name="livetv_category_all">All channels</string>
+    <string name="livetv_category_favorites">Favourites</string>
+    <string name="livetv_category_ungrouped">Ungrouped</string>
+    <string name="livetv_catchup_badge">Archive</string>
+    <string name="livetv_no_epg">No programme information</string>
+    <string name="livetv_search_hint">Filter channels</string>
+    <string name="livetv_preview_hint">Press OK to watch</string>
+    <string name="livetv_now">Now</string>
+    <string name="livetv_next">Next</string>
+    <string name="livetv_empty_title">No channels yet</string>
+    <string name="livetv_empty_message">Add a playlist in Settings → Playlists to start watching.</string>
+    <string name="livetv_empty_category">No channels in this category</string>
+    <string name="livetv_empty_favorites_title">No favourite channels</string>
+    <string name="livetv_empty_favorites_message">In the channel list, hold OK or press MENU to add a channel to your favourites.</string>
+    <string name="livetv_no_results">No channels match “%1$s”</string>
+    <string name="livetv_hint_controls">OK: watch · Hold OK / MENU: favourite · 0–9: channel number</string>
+    <string name="livetv_number_entry">Channel %1$s</string>
+    <string name="livetv_number_not_found">Channel %1$d not found</string>
+    <string name="livetv_favorite_added">“%1$s” added to favourites</string>
+    <string name="livetv_favorite_removed">“%1$s” removed from favourites</string>
+    <plurals name="livetv_catchup_days">
+        <item quantity="one">Archive: %1$d day</item>
+        <item quantity="other">Archive: %1$d days</item>
+    </plurals>
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="guide_title">TV programa</string>
+    <string name="guide_now_button">Dabar</string>
+    <string name="guide_today">Šiandien</string>
+    <string name="guide_yesterday">Vakar</string>
+    <string name="guide_tomorrow">Rytoj</string>
+    <string name="guide_duration_minutes">%1$d min.</string>
+    <string name="guide_no_programme">Nėra programos informacijos</string>
+    <string name="guide_loading">Įkeliama…</string>
+    <string name="guide_archive_unavailable">Šio kanalo archyvas nepasiekiamas</string>
+    <string name="guide_archive_expired">Šios laidos archyve jau nebėra</string>
+    <string name="guide_upcoming">Prasideda %1$s. Priminimai atsiras viename iš būsimų atnaujinimų.</string>
+    <string name="guide_live_badge">TIESIOGIAI</string>
+    <string name="guide_archive_badge">ARCHYVAS</string>
+    <string name="guide_empty_title">TV programos dar nėra</string>
+    <string name="guide_empty_message">Pridėkite grojaraštį su EPG šaltiniu skiltyje Nustatymai → Grojaraščiai.</string>
+    <string name="guide_no_channels_title">Šiame grojaraštyje kanalų nėra</string>
+</resources>

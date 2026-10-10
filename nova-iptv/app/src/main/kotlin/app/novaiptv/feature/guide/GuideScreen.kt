@@ -46,7 +46,6 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
@@ -292,10 +291,11 @@ fun GuideScreen(
                                 day = state.day,
                                 viewStart = viewStart,
                                 viewEnd = viewEnd,
-                                focusMillis = if (cursor?.row == index) cursor.focusMillis else null,
+                                focusMillis = if (cursor != null && cursor.row == index) cursor.focusMillis else null,
                                 gridFocused = gridFocused,
                                 nowMillis = state.nowMillis,
                                 showNumber = state.showNumbers,
+                                clock = clock,
                             )
                         }
                     }
@@ -536,6 +536,7 @@ private fun GuideRow(
     gridFocused: Boolean,
     nowMillis: Long,
     showNumber: Boolean,
+    clock: ClockFormat,
 ) {
     val cells = remember(programs, day) { buildRowCells(programs.orEmpty(), day) }
     val hasPrograms = !programs.isNullOrEmpty()
@@ -601,6 +602,7 @@ private fun GuideRow(
                         nowMillis = nowMillis,
                         selected = selected,
                         gridFocused = gridFocused,
+                        clock = clock,
                         modifier = Modifier.offset(x = place.offsetDp.dp).width(place.widthDp.dp).fillMaxHeight(),
                     )
                 }
@@ -636,6 +638,7 @@ private fun ProgramCell(
     nowMillis: Long,
     selected: Boolean,
     gridFocused: Boolean,
+    clock: ClockFormat,
     modifier: Modifier,
 ) {
     val live = program.isLive(nowMillis)
@@ -693,10 +696,12 @@ private fun ProgramCell(
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        text = "",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.Transparent,
+                        text = clock.range(program.startMillis, program.endMillis),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = subColor,
                         maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Clip,
                     )
                 }
             }

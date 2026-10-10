@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Window theme only; all UI is Compose (NovaTheme). Black window avoids a white flash. -->
+    <style name="Theme.Nova" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/nova_window_background</item>
+        <item name="android:colorBackground">@color/nova_window_background</item>
+        <item name="android:navigationBarColor">@color/nova_window_background</item>
+        <item name="android:statusBarColor">@color/nova_window_background</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>

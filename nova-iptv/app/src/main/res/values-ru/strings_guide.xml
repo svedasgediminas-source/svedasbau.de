@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="guide_title">Телепрограмма</string>
+    <string name="guide_now_button">Сейчас</string>
+    <string name="guide_today">Сегодня</string>
+    <string name="guide_yesterday">Вчера</string>
+    <string name="guide_tomorrow">Завтра</string>
+    <string name="guide_duration_minutes">%1$d мин</string>
+    <string name="guide_no_programme">Нет информации о программе</string>
+    <string name="guide_loading">Загрузка…</string>
+    <string name="guide_archive_unavailable">Архив для этого канала недоступен</string>
+    <string name="guide_archive_expired">Эта передача больше не доступна в архиве</string>
+    <string name="guide_upcoming">Начало в %1$s. Напоминания появятся в одном из следующих обновлений.</string>
+    <string name="guide_live_badge">В ЭФИРЕ</string>
+    <string name="guide_archive_badge">АРХИВ</string>
+    <string name="guide_empty_title">Телепрограммы пока нет</string>
+    <string name="guide_empty_message">Добавьте плейлист с источником EPG в разделе Настройки → Плейлисты.</string>
+    <string name="guide_no_channels_title">В этом плейлисте нет каналов</string>
+</resources>
