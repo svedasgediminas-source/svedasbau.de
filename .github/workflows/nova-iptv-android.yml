@@ -29,17 +29,24 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: JVM unit tests (parsers, Xtream, EPG)
-        run: ./gradlew -PjvmOnly=true test --continue
+        run: set -o pipefail; ./gradlew -PjvmOnly=true test --continue 2>&1 | tee -a build.log
 
       - name: Android unit tests
-        run: ./gradlew testDebugUnitTest --continue
+        run: set -o pipefail; ./gradlew testDebugUnitTest --continue 2>&1 | tee -a build.log
 
       - name: Assemble debug and release APKs
-        run: ./gradlew assembleDebug assembleRelease
+        run: set -o pipefail; ./gradlew assembleDebug assembleRelease --continue 2>&1 | tee -a build.log
 
       - name: Lint
         run: ./gradlew :app:lintDebug
         continue-on-error: true
+
+      - name: Error summary
+        if: failure()
+        run: |
+          echo "===== ERROR SUMMARY ====="
+          grep -E '^e: |^w: .*(unresolved|deprecated)|error:|What went wrong|FAILED|Unresolved reference|Cannot find|Could not resolve' build.log | grep -v '^w: ' | sort -u | head -150 || true
+          grep -A8 'What went wrong' build.log | head -80 || true
 
       - name: Upload APKs
         if: always()
