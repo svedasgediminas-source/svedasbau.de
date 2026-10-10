@@ -35,6 +35,7 @@ jobs:
         run: set -o pipefail; ./gradlew testDebugUnitTest --continue 2>&1 | tee -a build.log
 
       - name: Assemble debug and release APKs
+        if: ${{ !cancelled() }}
         run: set -o pipefail; ./gradlew assembleDebug assembleRelease --continue 2>&1 | tee -a build.log
 
       - name: Lint
