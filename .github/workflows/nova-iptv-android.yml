@@ -1,0 +1,60 @@
+name: Nova IPTV Android build
+
+on:
+  push:
+    paths:
+      - "nova-iptv/**"
+      - ".github/workflows/nova-iptv-android.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: nova-iptv-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: nova-iptv
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: JVM unit tests (parsers, Xtream, EPG)
+        run: ./gradlew -PjvmOnly=true test --continue
+
+      - name: Android unit tests
+        run: ./gradlew testDebugUnitTest --continue
+
+      - name: Assemble debug and release APKs
+        run: ./gradlew assembleDebug assembleRelease
+
+      - name: Lint
+        run: ./gradlew :app:lintDebug
+        continue-on-error: true
+
+      - name: Upload APKs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-iptv-apk
+          path: nova-iptv/app/build/outputs/apk/**/*.apk
+          if-no-files-found: warn
+
+      - name: Upload test and lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-iptv-reports
+          path: |
+            nova-iptv/**/build/reports/**
+            nova-iptv/**/build/test-results/**
+          if-no-files-found: ignore
