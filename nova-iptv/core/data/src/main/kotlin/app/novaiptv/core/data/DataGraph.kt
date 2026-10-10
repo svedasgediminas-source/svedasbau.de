@@ -6,6 +6,7 @@ import app.novaiptv.core.common.Clock
 import app.novaiptv.core.common.net.HttpClients
 import app.novaiptv.core.common.net.HttpDownloader
 import app.novaiptv.core.data.db.NovaDatabase
+import app.novaiptv.core.data.importer.RoomTransactionRunner
 import app.novaiptv.core.data.repository.CatchupResolverImpl
 import app.novaiptv.core.data.repository.ChannelRepositoryImpl
 import app.novaiptv.core.data.repository.EpgRepositoryImpl
@@ -88,6 +89,7 @@ class DataGraph(context: Context) {
             epg = epg,
             clock = clock,
             appScope = appScope,
+            transactions = RoomTransactionRunner(database),
         )
     }
 

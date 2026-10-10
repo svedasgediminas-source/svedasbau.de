@@ -14,12 +14,16 @@ import app.novaiptv.core.common.net.LimitedInputStream
 import app.novaiptv.core.common.net.SizeLimitExceededException
 import app.novaiptv.core.data.db.ChannelDao
 import app.novaiptv.core.data.db.ChannelEntity
+import app.novaiptv.core.data.db.ChannelMappingRow
 import app.novaiptv.core.data.db.PlaylistDao
 import app.novaiptv.core.data.db.PlaylistEntity
 import app.novaiptv.core.data.db.PlaylistTypes
 import app.novaiptv.core.data.db.ProgramDao
 import app.novaiptv.core.data.db.VodDao
 import app.novaiptv.core.data.db.VodKinds
+import app.novaiptv.core.data.importer.BatchImportOutcome
+import app.novaiptv.core.data.importer.TransactionRunner
+import app.novaiptv.core.data.importer.importInBatches
 import app.novaiptv.core.data.logic.isStale
 import app.novaiptv.core.data.mapper.joinList
 import app.novaiptv.core.data.mapper.joinUrls
@@ -35,8 +39,8 @@ import app.novaiptv.core.model.Channel
 import app.novaiptv.core.model.Entitlements
 import app.novaiptv.core.model.Playlist
 import app.novaiptv.core.model.XtreamCredentials
-import app.novaiptv.data.playlist.M3uParseResult
 import app.novaiptv.data.playlist.M3uParser
+import app.novaiptv.data.playlist.M3uStreamSummary
 import app.novaiptv.data.xtream.XtreamAccount
 import app.novaiptv.data.xtream.XtreamClient
 import kotlinx.coroutines.CancellationException
@@ -69,6 +73,8 @@ class PlaylistRepositoryImpl(
     private val epg: EpgRepository,
     private val clock: Clock,
     private val appScope: CoroutineScope,
+    /** Wraps the streamed M3U channel replacement in one transaction (`RoomTransactionRunner(database)`). */
+    private val transactions: TransactionRunner,
     private val entitlements: () -> Entitlements = { Entitlements() },
 ) : PlaylistRepository {
 
@@ -318,19 +324,25 @@ class PlaylistRepositoryImpl(
     }
 
     // ---- M3U -----------------------------------------------------------------------------------
+    //
+    // M3U imports stream: the parser hands over batches of channels which are written to the
+    // database as they arrive, so the full channel list of a (possibly 100k+ entries) playlist is
+    // never held in memory. The old channels are deleted and the new ones inserted in ONE
+    // transaction that is only opened once the first channel has been parsed; a playlist without
+    // channels, a truncated download or a parse error leaves the previous channels untouched.
 
     private suspend fun downloadM3u(playlistId: Long, url: String): AppResult<ImportSummary> {
         progress.value = ImportProgress.Running(playlistId, ImportProgress.Stage.Downloading)
-        val parsed = downloader.download(url, Limits.MAX_PLAYLIST_BYTES) { input -> parseM3u(input, playlistId) }.flatten()
-        return when (parsed) {
-            is AppResult.Err -> parsed
-            is AppResult.Ok -> saveM3u(playlistId, parsed.value)
+        return importM3u(playlistId) { sink ->
+            // The download block runs synchronously on the IO thread; the sink blocks while the
+            // database catches up, which also throttles the download.
+            downloader.download(url, Limits.MAX_PLAYLIST_BYTES) { input -> sink(input) }.flatten()
         }
     }
 
     private suspend fun readM3uFile(playlistId: Long, uri: Uri): AppResult<ImportSummary> {
         progress.value = ImportProgress.Running(playlistId, ImportProgress.Stage.Downloading)
-        val parsed: AppResult<M3uParseResult> = withContext(Dispatchers.IO) {
+        return importM3u(playlistId) { sink ->
             val raw: InputStream? = try {
                 contentResolver.openInputStream(uri)
             } catch (e: IOException) {
@@ -344,7 +356,7 @@ class PlaylistRepositoryImpl(
                 try {
                     raw.use { r ->
                         val limited = LimitedInputStream(r, Limits.MAX_PLAYLIST_BYTES)
-                        parseM3u(HttpDownloader.maybeGunzip(limited, Limits.MAX_PLAYLIST_BYTES), playlistId)
+                        sink(HttpDownloader.maybeGunzip(limited, Limits.MAX_PLAYLIST_BYTES))
                     }
                 } catch (e: SizeLimitExceededException) {
                     AppResult.Err(AppError.TooLarge(e.limit))
@@ -353,21 +365,60 @@ class PlaylistRepositoryImpl(
                 }
             }
         }
-        return when (parsed) {
-            is AppResult.Err -> parsed
-            is AppResult.Ok -> saveM3u(playlistId, parsed.value)
+    }
+
+    /**
+     * Parses the stream handed to `sink` by [source] and saves the channels batch by batch.
+     * [source] runs on the IO dispatcher and must call `sink` synchronously (at most once).
+     */
+    private suspend fun importM3u(
+        playlistId: Long,
+        source: suspend (sink: (InputStream) -> AppResult<M3uStreamSummary>) -> AppResult<M3uStreamSummary>,
+    ): AppResult<ImportSummary> {
+        // EPG mappings (manual overrides / name-resolved ids) of channels that still exist after the
+        // refresh are carried over. Only ids with a mapping are kept, read inside the transaction.
+        var kept: Map<String, ChannelMappingRow> = emptyMap()
+        var saved = 0
+        val outcome = importInBatches<List<Channel>, AppResult<M3uStreamSummary>>(
+            transactions = transactions,
+            produce = { emit -> source { input -> parseM3uStreaming(input, playlistId, emit) } },
+            isFailure = { it is AppResult.Err },
+            begin = {
+                kept = channelDao.mappings(playlistId).associateBy { it.id }
+                channelDao.deleteForPlaylist(playlistId)
+            },
+            save = { batch ->
+                val entities = ArrayList<ChannelEntity>(batch.size)
+                for (c in batch) {
+                    if (saved >= Limits.MAX_CHANNELS_PER_PLAYLIST) break
+                    val e = c.toEntity(saved).copy(playlistId = playlistId)
+                    val m = kept[e.id]
+                    entities += if (m == null) e else e.copy(manualEpgId = m.manualEpgId, resolvedEpgId = m.resolvedEpgId)
+                    saved++
+                }
+                if (entities.isNotEmpty()) channelDao.insertAll(entities)
+                progress.value = ImportProgress.Running(playlistId, ImportProgress.Stage.Saving, saved)
+            },
+        )
+        val summary = when (val r = outcome.result) {
+            is AppResult.Err -> return r // NoBatches or RolledBack: old channels untouched.
+            is AppResult.Ok -> r.value
         }
+        if (outcome !is BatchImportOutcome.Committed || saved == 0) return AppResult.Err(AppError.Empty)
+        return finishM3u(playlistId, summary, saved)
     }
 
     /** Blocking; runs on the IO thread inside the download/file read. */
-    private fun parseM3u(input: InputStream, playlistId: Long): AppResult<M3uParseResult> {
+    private fun parseM3uStreaming(
+        input: InputStream,
+        playlistId: Long,
+        emit: (List<Channel>) -> Unit,
+    ): AppResult<M3uStreamSummary> {
         progress.value = ImportProgress.Running(playlistId, ImportProgress.Stage.Parsing)
         return try {
-            AppResult.Ok(
-                M3uParser().parse(input, playlistId) { count ->
-                    progress.value = ImportProgress.Running(playlistId, ImportProgress.Stage.Parsing, count)
-                },
-            )
+            AppResult.Ok(M3uParser().parseStreaming(input, playlistId, M3U_BATCH, emit))
+        } catch (e: CancellationException) {
+            throw e // The consumer gave up (error or cancellation); abort the parse.
         } catch (e: IllegalArgumentException) {
             AppResult.Err(AppError.Parse(e.javaClass.simpleName))
         } catch (e: IllegalStateException) {
@@ -377,12 +428,7 @@ class PlaylistRepositoryImpl(
         }
     }
 
-    private suspend fun saveM3u(playlistId: Long, parsed: M3uParseResult): AppResult<ImportSummary> {
-        if (parsed.channels.isEmpty()) return AppResult.Err(AppError.Empty)
-        progress.value = ImportProgress.Running(playlistId, ImportProgress.Stage.Saving, parsed.channels.size)
-        val entities = toChannelEntities(playlistId, parsed.channels)
-        channelDao.replaceForPlaylist(playlistId, entities)
-
+    private suspend fun finishM3u(playlistId: Long, parsed: M3uStreamSummary, saved: Int): AppResult<ImportSummary> {
         val current = playlistDao.get(playlistId) ?: return AppResult.Err(AppError.InvalidInput("playlist"))
         val epgUrls = if (current.epgUrlsManual) {
             current.epgUrls
@@ -393,8 +439,8 @@ class PlaylistRepositoryImpl(
         return AppResult.Ok(
             ImportSummary(
                 playlistId = playlistId,
-                channels = entities.size,
-                groups = entities.mapTo(HashSet()) { it.groupName }.size,
+                channels = saved,
+                groups = parsed.groupCount,
                 skippedEntries = parsed.skipped,
                 warnings = parsed.warnings.take(MAX_WARNINGS),
             ),
@@ -518,6 +564,9 @@ class PlaylistRepositoryImpl(
 
     private companion object {
         const val MAX_WARNINGS = 50
+
+        /** Channels per parser batch / insert; bounds the memory of an M3U import. */
+        const val M3U_BATCH = 500
 
         /** Short, credential-free error code stored on the playlist row. */
         fun describe(error: AppError): String = when (error) {
