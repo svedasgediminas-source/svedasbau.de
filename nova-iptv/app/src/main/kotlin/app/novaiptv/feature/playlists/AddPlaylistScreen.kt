@@ -162,7 +162,6 @@ fun AddPlaylistScreen(type: String, onDone: () -> Unit, onBack: () -> Unit) {
                 NovaButton(
                     text = stringResource(if (state.submitting) R.string.playlist_importing else R.string.playlist_add_button),
                     onClick = vm::submit,
-                    enabled = !state.submitting,
                     primary = true,
                 )
                 NovaButton(text = stringResource(R.string.common_cancel), onClick = onBack)
