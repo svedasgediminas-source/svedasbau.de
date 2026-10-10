@@ -11,6 +11,9 @@ concurrency:
   group: nova-iptv-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -146,10 +149,22 @@ jobs:
             nova-iptv/**/build/reports/androidTests/**
           if-no-files-found: ignore
 
-      - name: Screenshots (base64, small JPEG)
-        if: always()
+      - name: Commit screenshots to the branch
+        if: ${{ always() && github.event_name == 'push' }}
         working-directory: nova-iptv
-        run: cat build/emulator/shots-b64.txt 2>/dev/null || echo "no screenshots"
+        run: |
+          shots=build/emulator/screens
+          [ -d "$shots" ] || exit 0
+          mkdir -p docs/screenshots
+          for f in 01-launch-onboarding 10-demo-home 11-demo-livetv 12-demo-player 13-demo-guide 14-demo-settings; do
+            [ -s "$shots/$f.png" ] && cp "$shots/$f.png" docs/screenshots/
+          done
+          git config user.name "nova-ci"
+          git config user.email "nova-ci@users.noreply.github.com"
+          git add docs/screenshots
+          git diff --cached --quiet && exit 0
+          git commit -m "CI: Android TV emulator screenshots (run ${{ github.run_id }}) [skip ci]"
+          for i in 1 2 3; do git pull --rebase -q origin "${{ github.ref_name }}" && git push -q origin "HEAD:${{ github.ref_name }}" && break; sleep 5; done
 
       - name: Emulator summary
         if: always()

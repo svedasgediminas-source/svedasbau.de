@@ -96,15 +96,6 @@ shot 14-demo-settings
 alive && echo "demo navigation: running" >> "$OUT/smoke.txt" || { echo "demo navigation: NOT RUNNING" >> "$OUT/smoke.txt"; status=1; }
 kill $DEMO_SERVER 2> /dev/null
 
-# Small JPEG copies as base64 so the screenshots can be read from the job log tail.
-: > "$OUT/shots-b64.txt"
-for f in 01-launch-onboarding 10-demo-home 11-demo-livetv 12-demo-player 13-demo-guide 14-demo-settings; do
-  src="$OUT/screens/$f.png"; [ -s "$src" ] || continue
-  dst="$OUT/screens/$f-small.jpg"
-  if command -v convert > /dev/null; then convert "$src" -resize 640x -quality 55 "$dst";
-  elif command -v ffmpeg > /dev/null; then ffmpeg -loglevel error -y -i "$src" -vf scale=640:-1 -q:v 8 "$dst"; fi
-  [ -s "$dst" ] && { echo "=== SHOT $f ==="; base64 -w0 "$dst"; echo; } >> "$OUT/shots-b64.txt"
-done
 
 adb logcat -d -v threadtime > "$OUT/logcat-smoke.txt"
 
