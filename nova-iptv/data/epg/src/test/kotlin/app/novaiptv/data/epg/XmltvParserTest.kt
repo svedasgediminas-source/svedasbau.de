@@ -173,13 +173,17 @@ class XmltvParserTest {
         assertEquals(2, r.stats.channels)
         assertEquals(2, r.stats.programs)
         assertEquals(2, r.programs.size)
+        assertTrue(r.programs.none { it.title.startsWith("Brea") }) // partial element never delivered
     }
 
     @Test fun truncatedBetweenElements() {
         val cut = sample.substring(0, sample.indexOf("</tv>"))
         val r = parse(cut)
         assertNotNull(r.stats.error)
-        assertEquals(4, r.stats.programs)
+        // The last element cannot be told apart from an auto-closed partial one, so it is dropped.
+        assertEquals(3, r.stats.programs)
+        assertEquals(1, r.stats.skipped)
+        assertEquals(3, r.programs.size)
     }
 
     @Test fun garbageInputDoesNotThrow() {

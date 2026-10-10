@@ -25,8 +25,10 @@ data class XmltvStats(val channels: Int, val programs: Int, val skipped: Int, va
  * - XXE: DOCTYPE processing is disabled where supported and external entities are never resolved
  *   (XmlPullParser has no entity resolver at all). Unknown entities are left as literal text
  *   in relaxed mode rather than failing the whole feed.
- * - A truncated/malformed document does not throw: everything parsed so far has already been
- *   delivered and [XmltvStats.error] is set. Exceptions thrown by the callbacks propagate.
+ * - A truncated/malformed document does not throw: everything parsed so far has been delivered
+ *   and [XmltvStats.error] is set. Delivery lags one element behind parsing so that the element
+ *   being parsed when the input ended (possibly auto-closed by a relaxed parser) is dropped
+ *   (counted as skipped if it was a programme). Exceptions thrown by the callbacks propagate.
  */
 class XmltvParser(private val parserFactory: () -> XmlPullParser) {
 
@@ -47,7 +49,8 @@ class XmltvParser(private val parserFactory: () -> XmlPullParser) {
         var skipped = 0
         private val pendingNoStop = HashMap<String, EpgProgram>()
 
-        fun run(input: InputStream): XmltvStats {
+        fun run(rawInput: InputStream): XmltvStats {
+            val input = TailTrackingInputStream(rawInput)
             val parser = try {
                 parserFactory().also { configure(it, input) }
             } catch (e: XmlPullParserException) {
@@ -75,7 +78,7 @@ class XmltvParser(private val parserFactory: () -> XmlPullParser) {
                     event = parser.next()
                 }
                 if (!sawRoot) error = "No XMLTV root element"
-                else if (!sawTvEnd) error = "Unexpected end of document (truncated?)"
+                else if (!sawTvEnd || !input.endsWithRootClose()) error = "Unexpected end of document (truncated?)"
             } catch (e: XmlPullParserException) {
                 error = "Malformed XMLTV: ${e.message?.take(200)}"
             } catch (e: IOException) {
@@ -83,6 +86,7 @@ class XmltvParser(private val parserFactory: () -> XmlPullParser) {
             } catch (e: TruncatedElement) {
                 error = "Unexpected end of document (truncated?)"
             }
+            if (error == null) flushHeld() else dropHeld()
             // Programmes still waiting for a successor have no end time: skip them.
             skipped += pendingNoStop.size
             pendingNoStop.clear()
@@ -135,8 +139,7 @@ class XmltvParser(private val parserFactory: () -> XmlPullParser) {
                 }
             }
             if (id.isNullOrEmpty()) return
-            channels++
-            onChannel(EpgChannel(id = id, displayNames = names, iconUrl = icon))
+            hold(EpgChannel(id = id, displayNames = names, iconUrl = icon))
         }
 
         private fun readProgramme(p: XmlPullParser) {
@@ -217,9 +220,31 @@ class XmltvParser(private val parserFactory: () -> XmlPullParser) {
             emit(program)
         }
 
-        private fun emit(program: EpgProgram) {
-            programs++
-            onProgram(program)
+        private fun emit(program: EpgProgram) = hold(program)
+
+        /**
+         * The most recent element is delivered only once the next one is complete (or the document
+         * ended cleanly): relaxed parsers auto-close an element cut off by truncation, and such a
+         * partial element must not reach the callbacks.
+         */
+        private var held: Any? = null
+
+        private fun hold(element: Any) {
+            flushHeld()
+            held = element
+        }
+
+        private fun flushHeld() {
+            when (val h = held) {
+                is EpgProgram -> { programs++; onProgram(h) }
+                is EpgChannel -> { channels++; onChannel(h) }
+            }
+            held = null
+        }
+
+        private fun dropHeld() {
+            if (held is EpgProgram) skipped++
+            held = null
         }
 
         /** Reads the text content of the current element (skipping nested markup); clipped, null if blank. */
@@ -244,6 +269,51 @@ class XmltvParser(private val parserFactory: () -> XmlPullParser) {
                 if (ev == XmlPullParser.END_DOCUMENT) throw TruncatedElement()
                 if (ev == XmlPullParser.END_TAG && p.depth == depth) return
             }
+        }
+    }
+
+    /**
+     * Remembers the last few significant bytes read. Relaxed parsers (kXML2 / Android) silently
+     * close open elements at EOF, so truncation is detected by checking that the raw document
+     * really ends with `</tv>` (whitespace and NUL bytes of UTF-16 are ignored).
+     */
+    private class TailTrackingInputStream(input: InputStream) : java.io.FilterInputStream(input) {
+        private val tail = ByteArray(TAIL_SIZE)
+        private var pos = 0
+        private var filled = 0
+
+        private fun record(b: Int) {
+            if (b == 0 || b == ' '.code || b == '\n'.code || b == '\r'.code || b == '\t'.code) return
+            tail[pos] = b.toByte()
+            pos = (pos + 1) % TAIL_SIZE
+            if (filled < TAIL_SIZE) filled++
+        }
+
+        override fun read(): Int {
+            val b = super.read()
+            if (b >= 0) record(b)
+            return b
+        }
+
+        override fun read(b: ByteArray, off: Int, len: Int): Int {
+            val n = super.read(b, off, len)
+            for (i in off until off + n) record(b[i].toInt() and 0xff)
+            return n
+        }
+
+
+        fun endsWithRootClose(): Boolean {
+            val expected = "</tv>".toByteArray()
+            if (filled < expected.size) return false
+            for (i in expected.indices) {
+                val idx = (pos - expected.size + i + TAIL_SIZE) % TAIL_SIZE
+                if (tail[idx] != expected[i]) return false
+            }
+            return true
+        }
+
+        companion object {
+            const val TAIL_SIZE = 16
         }
     }
 
