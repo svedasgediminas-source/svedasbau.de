@@ -62,7 +62,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.tv.material3.Border
@@ -147,7 +146,7 @@ fun LiveTvScreen(onPlayChannel: (channelId: String, group: String?) -> Unit) {
 
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
-    val locale = ConfigurationCompat.getLocales(configuration)[0] ?: Locale.getDefault()
+    val locale = configuration.locales[0] // minSdk 26: observable via LocalConfiguration
     val is24h = DateFormat.is24HourFormat(context)
     val clock = remember(locale, is24h) { ClockFormat(locale, is24h, ZoneId.systemDefault()) }
 
