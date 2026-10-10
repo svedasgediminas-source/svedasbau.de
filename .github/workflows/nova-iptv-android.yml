@@ -39,7 +39,19 @@ jobs:
         run: set -o pipefail; ./gradlew assembleDebug assembleRelease --continue 2>&1 | tee -a build.log
 
       - name: Lint
-        run: ./gradlew :app:lintDebug
+        run: |
+          set -o pipefail
+          ./gradlew :app:lintDebug 2>&1 | tail -5
+          echo "===== LINT ERRORS ====="
+          python3 - <<'PY'
+          import glob, xml.etree.ElementTree as ET
+          for f in glob.glob('app/build/reports/lint-results-debug.xml'):
+              for i in ET.parse(f).getroot().iter('issue'):
+                  if i.get('severity') in ('Error', 'Fatal'):
+                      loc = i.find('location')
+                      where = f"{loc.get('file','?').split('nova-iptv/')[-1]}:{loc.get('line','?')}" if loc is not None else '?'
+                      print(f"{i.get('id')}: {where}: {i.get('message')}")
+          PY
         continue-on-error: true
 
       - name: Error summary

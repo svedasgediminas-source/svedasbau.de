@@ -56,7 +56,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.tv.material3.Border
@@ -146,7 +145,7 @@ fun GuideScreen(
     }
 
     val context = LocalContext.current
-    val locale = ConfigurationCompat.getLocales(LocalConfiguration.current)[0] ?: Locale.getDefault()
+    val locale = LocalConfiguration.current.locales[0] // minSdk 26: Configuration.getLocales() available
     val is24h = DateFormat.is24HourFormat(context)
     val clock = remember(locale, is24h) { ClockFormat(locale, is24h, ZoneId.systemDefault()) }
 
