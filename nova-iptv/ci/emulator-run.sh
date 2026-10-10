@@ -66,6 +66,46 @@ sleep 6
 shot 09-relaunch
 alive && echo "after relaunch: running" >> "$OUT/smoke.txt" || { echo "after relaunch: NOT RUNNING" >> "$OUT/smoke.txt"; status=1; }
 
+# ---- 2b. demo playlist + design screenshots ----------------------------------------------------
+# Serves a generated M3U/XMLTV (Apple's public HLS sample stream) from the runner; the emulator
+# reaches the host as 10.0.2.2. The debug-only intent extra imports it without remote typing.
+python3 ci/make_demo.py "$OUT/demo" "http://10.0.2.2:8099" >> "$OUT/smoke.txt" 2>&1
+( cd "$OUT/demo" && python3 -m http.server 8099 > /dev/null 2>&1 ) &
+DEMO_SERVER=$!
+sleep 2
+adb shell am force-stop "$PKG"
+adb shell am start -W -n "$PKG/$ACTIVITY" --es nova_demo_m3u "http://10.0.2.2:8099/demo.m3u" \
+  --es nova_demo_epg "http://10.0.2.2:8099/epg.xml" >> "$OUT/am-start.txt" 2>&1
+sleep 25   # import + EPG refresh
+adb shell am force-stop "$PKG"
+adb shell am start -W -n "$PKG/$ACTIVITY" >> "$OUT/am-start.txt" 2>&1
+sleep 8
+shot 10-demo-home
+alive && echo "demo home: running" >> "$OUT/smoke.txt" || { echo "demo home: NOT RUNNING" >> "$OUT/smoke.txt"; status=1; }
+topbar() { for _ in 1 2 3 4 5; do adb shell input keyevent DPAD_UP; sleep 0.3; done; }
+topbar; key DPAD_RIGHT; key DPAD_CENTER; sleep 3
+shot 11-demo-livetv
+key DPAD_DOWN; key DPAD_CENTER; sleep 10
+shot 12-demo-player
+alive && echo "demo player: running" >> "$OUT/smoke.txt" || { echo "demo player: NOT RUNNING" >> "$OUT/smoke.txt"; status=1; }
+key BACK; sleep 2
+topbar; key DPAD_RIGHT; key DPAD_RIGHT; key DPAD_CENTER; sleep 4
+shot 13-demo-guide
+topbar; for _ in 1 2 3 4 5 6; do adb shell input keyevent DPAD_RIGHT; sleep 0.4; done; key DPAD_CENTER; sleep 3
+shot 14-demo-settings
+alive && echo "demo navigation: running" >> "$OUT/smoke.txt" || { echo "demo navigation: NOT RUNNING" >> "$OUT/smoke.txt"; status=1; }
+kill $DEMO_SERVER 2> /dev/null
+
+# Small JPEG copies as base64 so the screenshots can be read from the job log tail.
+: > "$OUT/shots-b64.txt"
+for f in 01-launch-onboarding 10-demo-home 11-demo-livetv 12-demo-player 13-demo-guide 14-demo-settings; do
+  src="$OUT/screens/$f.png"; [ -s "$src" ] || continue
+  dst="$OUT/screens/$f-small.jpg"
+  if command -v convert > /dev/null; then convert "$src" -resize 640x -quality 55 "$dst";
+  elif command -v ffmpeg > /dev/null; then ffmpeg -loglevel error -y -i "$src" -vf scale=640:-1 -q:v 8 "$dst"; fi
+  [ -s "$dst" ] && { echo "=== SHOT $f ==="; base64 -w0 "$dst"; echo; } >> "$OUT/shots-b64.txt"
+done
+
 adb logcat -d -v threadtime > "$OUT/logcat-smoke.txt"
 
 # ---- 3. crash / ANR scan ----------------------------------------------------------------------

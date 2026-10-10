@@ -146,6 +146,11 @@ jobs:
             nova-iptv/**/build/reports/androidTests/**
           if-no-files-found: ignore
 
+      - name: Screenshots (base64, small JPEG)
+        if: always()
+        working-directory: nova-iptv
+        run: cat build/emulator/shots-b64.txt 2>/dev/null || echo "no screenshots"
+
       - name: Emulator summary
         if: always()
         run: |

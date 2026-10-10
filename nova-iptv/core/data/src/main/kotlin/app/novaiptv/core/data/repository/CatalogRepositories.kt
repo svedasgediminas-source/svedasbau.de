@@ -63,7 +63,10 @@ class ChannelRepositoryImpl(
 
     override fun observeChannelItems(playlistId: Long, group: String?): Flow<List<ChannelListItem>> =
         (if (group == null) dao.observeListItems(playlistId) else dao.observeListItemsByGroup(playlistId, group))
-            .map { rows -> rows.map { it.toListItem() } }.flowOn(Dispatchers.Default)
+            .map { rows ->
+                val groupPool = HashMap<String, String>()
+                rows.map { it.toListItem(groupPool) }
+            }.flowOn(Dispatchers.Default)
 
     override fun observeFirstChannels(playlistId: Long, limit: Int): Flow<List<Channel>> =
         dao.observeFirst(playlistId, limit.coerceAtLeast(0))

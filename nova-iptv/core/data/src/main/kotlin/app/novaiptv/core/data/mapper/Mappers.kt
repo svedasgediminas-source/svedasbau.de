@@ -128,13 +128,16 @@ fun ChannelEntity.toModel(): Channel {
 
 private val CATCHUP_TYPE_NAMES: Set<String> = CatchupType.entries.mapTo(HashSet()) { it.name }
 
-/** Slim list row: no stream/extras, so no JSON decoding (cheap for 200k rows). */
-fun ChannelListRow.toListItem(): ChannelListItem = ChannelListItem(
+/**
+ * Slim list row: no stream/extras, so no JSON decoding (cheap for 200k rows). Pass the same
+ * [groupPool] for every row of one list so equal group names share one String instance.
+ */
+fun ChannelListRow.toListItem(groupPool: MutableMap<String, String>? = null): ChannelListItem = ChannelListItem(
     id = id,
     playlistId = playlistId,
     number = number,
     name = name,
-    groupName = groupName.ifEmpty { null },
+    groupName = groupName.ifEmpty { null }?.let { g -> groupPool?.getOrPut(g) { g } ?: g },
     logoUrl = logoUrl,
     epgId = effectiveEpgId(manualEpgId, resolvedEpgId, epgId),
     hasCatchup = catchupType != null && catchupType in CATCHUP_TYPE_NAMES,
