@@ -103,8 +103,9 @@ class HttpDownloader(private val client: OkHttpClient) {
             val b2 = buffered.read()
             buffered.reset()
             return if (b1 == 0x1f && b2 == 0x8b) {
-                // Limit decompressed size too (gzip bombs).
-                BufferedInputStream(LimitedInputStream(GZIPInputStream(buffered), maxBytes * 10))
+                // Bound decompressed size too (gzip bombs); XMLTV typically compresses ~10x, so
+                // 3x the plain limit still admits large real-world EPG files.
+                BufferedInputStream(LimitedInputStream(GZIPInputStream(buffered), maxBytes * 3))
             } else {
                 buffered
             }

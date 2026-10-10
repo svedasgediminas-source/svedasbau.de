@@ -106,6 +106,8 @@ class GuideViewModel(
     private val cursor = MutableStateFlow<GuideCursor?>(null)
     private val spanMillis = MutableStateFlow(0L)
     private val visibleRows = MutableStateFlow(0..15)
+    /** When an EPG id last came back empty; such ids are re-queried after [EMPTY_RECHECK_MS]. */
+    private val emptyLoadedAt = java.util.concurrent.ConcurrentHashMap<String, Long>()
     private val programs = MutableStateFlow(ProgramCache(guideDay(selectedDate.value, zone).startMillis))
     private val message = MutableStateFlow<GuideMessage?>(null)
     private var messageJob: Job? = null
@@ -185,7 +187,8 @@ class GuideViewModel(
                 visibleRows.debounce(150),
                 channelsState.filterIsInstance<GuideChannelsState.Loaded>(),
                 selectedDate,
-            ) { rows, loaded, date -> Triple(rows, loaded.channels, date) }
+                nowMillis, // periodic tick: re-checks rows whose EPG was still empty
+            ) { rows, loaded, date, _ -> Triple(rows, loaded.channels, date) }
                 .collectLatest { (rows, list, date) -> loadPrograms(rows, list, guideDay(date, zone)) }
         }
         // Start on the last watched channel, if any.
@@ -214,7 +217,12 @@ class GuideViewModel(
         val to = (rows.last + PREFETCH_ROWS).coerceAtMost(list.lastIndex)
         if (from > to) return
         val window = list.subList(from, to + 1)
-        val missing = window.mapNotNull { it.epgId }.distinct().filter { it !in programs.value.byEpgId }
+        val now = System.currentTimeMillis()
+        // Empty results are re-queried after a while: EPG may still be importing in the background.
+        val missing = window.mapNotNull { it.epgId }.distinct().filter { id ->
+            val cached = programs.value.byEpgId[id]
+            cached == null || (cached.isEmpty() && now - (emptyLoadedAt[id] ?: 0L) > EMPTY_RECHECK_MS)
+        }
         for (chunk in missing.chunked(LOAD_CHUNK)) {
             val result = try {
                 epg.programsForChannels(chunk, day.startMillis, day.endMillis)
@@ -224,6 +232,7 @@ class GuideViewModel(
                 continue // not cached: retried on the next scroll
             }
             val loaded = chunk.associateWith { id -> result[id].orEmpty().sortedBy { it.startMillis } }
+            loaded.forEach { (id, list) -> if (list.isEmpty()) emptyLoadedAt[id] = now else emptyLoadedAt.remove(id) }
             programs.update { cache ->
                 if (cache.dayStart != day.startMillis) {
                     cache
@@ -250,6 +259,8 @@ class GuideViewModel(
     }
 
     fun retry() {
+        emptyLoadedAt.clear()
+        programs.value = ProgramCache(programs.value.dayStart)
         retryTrigger.value = retryTrigger.value + 1
     }
 
@@ -369,6 +380,7 @@ class GuideViewModel(
     private companion object {
         const val PREFETCH_ROWS = 8
         const val LOAD_CHUNK = 40
+        const val EMPTY_RECHECK_MS = 60_000L
         const val CACHE_LIMIT = 1_500
     }
 }

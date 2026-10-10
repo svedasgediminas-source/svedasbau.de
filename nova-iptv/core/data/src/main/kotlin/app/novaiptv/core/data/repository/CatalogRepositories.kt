@@ -30,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -52,18 +53,18 @@ class ChannelRepositoryImpl(
 ) : ChannelRepository {
 
     override fun observeGroups(playlistId: Long): Flow<List<ChannelGroup>> =
-        dao.observeGroups(playlistId).map { rows -> rows.map { it.toModel(playlistId) } }
+        dao.observeGroups(playlistId).map { rows -> rows.map { it.toModel(playlistId) } }.flowOn(Dispatchers.Default)
 
     override fun observeChannels(playlistId: Long, group: String?): Flow<List<Channel>> =
         (if (group == null) dao.observeAll(playlistId) else dao.observeByGroup(playlistId, group))
-            .map { rows -> rows.map { it.toModel() } }
+            .map { rows -> rows.map { it.toModel() } }.flowOn(Dispatchers.Default)
 
     /** Results follow the order of [ids] (e.g. favourites order). */
     override fun observeChannelsByIds(ids: List<String>): Flow<List<Channel>> =
         chunkedInFlow<ChannelEntity>(ids) { dao.observeByIds(it) }.map { rows ->
             val byId = rows.associateBy { it.id }
             ids.distinct().mapNotNull { byId[it]?.toModel() }
-        }
+        }.flowOn(Dispatchers.Default)
 
     override suspend fun getChannel(id: String): Channel? = withContext(Dispatchers.IO) { dao.get(id)?.toModel() }
 
@@ -103,26 +104,26 @@ class VodRepositoryImpl(
     private val seasonsMutex = Mutex()
 
     override fun observeMovieCategories(playlistId: Long): Flow<List<VodCategory>> =
-        vodDao.observeCategories(playlistId, VodKinds.MOVIE).map { rows -> rows.map { it.toModel() } }
+        vodDao.observeCategories(playlistId, VodKinds.MOVIE).map { rows -> rows.map { it.toModel() } }.flowOn(Dispatchers.Default)
 
     override fun observeMovies(playlistId: Long, categoryId: String?): Flow<List<Movie>> =
         (if (categoryId == null) vodDao.observeMovies(playlistId) else vodDao.observeMoviesInCategory(playlistId, categoryId))
-            .map { rows -> rows.map { it.toModel() } }
+            .map { rows -> rows.map { it.toModel() } }.flowOn(Dispatchers.Default)
 
     override fun observeRecentMovies(playlistId: Long, limit: Int): Flow<List<Movie>> =
-        vodDao.observeRecentMovies(playlistId, limit.coerceAtLeast(0)).map { rows -> rows.map { it.toModel() } }
+        vodDao.observeRecentMovies(playlistId, limit.coerceAtLeast(0)).map { rows -> rows.map { it.toModel() } }.flowOn(Dispatchers.Default)
 
     override suspend fun getMovie(id: String): Movie? = withContext(Dispatchers.IO) { vodDao.getMovie(id)?.toModel() }
 
     override fun observeSeriesCategories(playlistId: Long): Flow<List<VodCategory>> =
-        vodDao.observeCategories(playlistId, VodKinds.SERIES).map { rows -> rows.map { it.toModel() } }
+        vodDao.observeCategories(playlistId, VodKinds.SERIES).map { rows -> rows.map { it.toModel() } }.flowOn(Dispatchers.Default)
 
     override fun observeSeries(playlistId: Long, categoryId: String?): Flow<List<Series>> =
         (if (categoryId == null) vodDao.observeSeries(playlistId) else vodDao.observeSeriesInCategory(playlistId, categoryId))
-            .map { rows -> rows.map { it.toModel() } }
+            .map { rows -> rows.map { it.toModel() } }.flowOn(Dispatchers.Default)
 
     override fun observeRecentSeries(playlistId: Long, limit: Int): Flow<List<Series>> =
-        vodDao.observeRecentSeries(playlistId, limit.coerceAtLeast(0)).map { rows -> rows.map { it.toModel() } }
+        vodDao.observeRecentSeries(playlistId, limit.coerceAtLeast(0)).map { rows -> rows.map { it.toModel() } }.flowOn(Dispatchers.Default)
 
     override suspend fun getSeries(id: String): Series? = withContext(Dispatchers.IO) { vodDao.getSeries(id)?.toModel() }
 

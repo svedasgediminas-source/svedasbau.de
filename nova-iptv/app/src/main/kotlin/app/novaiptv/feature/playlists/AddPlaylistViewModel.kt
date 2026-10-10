@@ -34,7 +34,11 @@ data class AddPlaylistUiState(
     val problem: FormProblem? = null,
     val error: AppError? = null,
     val result: ImportSummary? = null,
-)
+) {
+    // Never expose the password through the generated toString (logs, crash reports).
+    override fun toString(): String =
+        "AddPlaylistUiState(name=$name, server=$server, username=***, password=***, submitting=$submitting, problem=$problem, error=$error)"
+}
 
 class AddPlaylistViewModel(private val container: AppContainer, val type: String) : ViewModel() {
     private val _state = MutableStateFlow(AddPlaylistUiState())

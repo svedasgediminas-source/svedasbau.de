@@ -50,7 +50,7 @@ fun maxCatchupDays(channels: List<Channel>, cap: Int = MAX_PAST_DAYS): Int {
     var max = 0
     for (c in channels) {
         val cap0 = c.catchup
-        if (cap0 is CatchupCapability.Supported && cap0.days > max) max = cap0.days
+        if (cap0 is CatchupCapability.Supported && cap0.windowDays > max) max = cap0.windowDays
     }
     return max.coerceIn(0, cap)
 }
@@ -227,15 +227,15 @@ enum class GuideAction { PlayLive, PlayCatchup, ArchiveUnavailable, ArchiveExpir
 
 /** True when the programme is past and inside the channel's declared archive window. */
 fun isInArchive(capability: CatchupCapability, startMillis: Long, endMillis: Long, nowMillis: Long): Boolean {
-    if (capability !is CatchupCapability.Supported || capability.days <= 0) return false
+    if (capability !is CatchupCapability.Supported) return false
     if (endMillis > nowMillis) return false
-    return startMillis >= nowMillis - capability.days * DAY_MILLIS
+    return startMillis >= nowMillis - capability.windowDays * DAY_MILLIS
 }
 
 fun decideGuideAction(capability: CatchupCapability, startMillis: Long, endMillis: Long, nowMillis: Long): GuideAction = when {
     nowMillis in startMillis until endMillis -> GuideAction.PlayLive
     startMillis > nowMillis -> GuideAction.Upcoming
-    capability !is CatchupCapability.Supported || capability.days <= 0 -> GuideAction.ArchiveUnavailable
+    capability !is CatchupCapability.Supported -> GuideAction.ArchiveUnavailable
     isInArchive(capability, startMillis, endMillis, nowMillis) -> GuideAction.PlayCatchup
     else -> GuideAction.ArchiveExpired
 }

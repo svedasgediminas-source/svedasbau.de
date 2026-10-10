@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -66,6 +67,9 @@ fun AddPlaylistScreen(type: String, onDone: () -> Unit, onBack: () -> Unit) {
     val vm: AddPlaylistViewModel = viewModel(key = "add_$type") { AddPlaylistViewModel(container, type) }
     val state by vm.state.collectAsStateWithLifecycle()
     val progress by vm.importProgress.collectAsStateWithLifecycle()
+    // Leaving the screen would cancel the import (it runs in viewModelScope) and discard the
+    // half-imported playlist, so Back is held while an import is running.
+    BackHandler(enabled = state.submitting) {}
     var pickerUnavailable by remember { mutableStateOf(false) }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->

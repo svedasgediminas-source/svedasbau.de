@@ -46,7 +46,18 @@ sealed interface CatchupCapability {
         val days: Int,
         /** Template from M3U catchup-source, if any (may contain {utc}, {lutc}, ${start} ...). */
         val sourceTemplate: String? = null,
-    ) : CatchupCapability
+    ) : CatchupCapability {
+        /**
+         * Archive window used for UI and URL decisions. A source can declare catch-up without a
+         * day count (days = 0); we then assume [UNKNOWN_WINDOW_DAYS] and let the server reject
+         * programmes outside its real window.
+         */
+        val windowDays: Int get() = if (days > 0) days else UNKNOWN_WINDOW_DAYS
+
+        companion object {
+            const val UNKNOWN_WINDOW_DAYS = 7
+        }
+    }
 }
 
 enum class CatchupType { Default, Append, Shift, Flussonic, Xtream }

@@ -69,6 +69,8 @@ class NovaPlayer(
     private var isLive = false
     private var released = false
     private var retryingAttempt: Int? = null
+    /** Consecutive BEHIND_LIVE_WINDOW rejoins; bounded so a broken live playlist can't loop forever. */
+    private var behindLiveRejoins = 0
     private var retryJob: Job? = null
     private var tickerJob: Job? = null
     private var trackRefs: Map<String, TrackRef> = emptyMap()
@@ -87,6 +89,7 @@ class NovaPlayer(
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             if (isPlaying) {
+                behindLiveRejoins = 0
                 startTicker()
             } else {
                 stopTicker()
@@ -147,6 +150,7 @@ class NovaPlayer(
         if (released) return
         cancelRetry()
         retryPolicy.reset()
+        behindLiveRejoins = 0
         this.isLive = isLive
         _audioTracks.value = emptyList()
         _subtitleTracks.value = emptyList()
@@ -296,7 +300,8 @@ class NovaPlayer(
     }
 
     private fun onError(error: PlaybackException) {
-        if (PlaybackErrors.isBehindLiveWindow(error.errorCode)) {
+        if (PlaybackErrors.isBehindLiveWindow(error.errorCode) && behindLiveRejoins < MAX_BEHIND_LIVE_REJOINS) {
+            behindLiveRejoins++
             exoPlayer.seekToDefaultPosition()
             exoPlayer.prepare()
             return
@@ -409,6 +414,7 @@ class NovaPlayer(
     }
 
     private companion object {
+        const val MAX_BEHIND_LIVE_REJOINS = 3
         // Modest buffers for low-RAM TV boxes; start quickly, rebuffer a bit more conservatively.
         const val MIN_BUFFER_MS = 15_000
         const val MAX_BUFFER_MS = 30_000

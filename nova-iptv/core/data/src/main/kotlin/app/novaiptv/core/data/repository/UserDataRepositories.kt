@@ -15,6 +15,7 @@ import app.novaiptv.core.model.WatchHistory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
@@ -25,7 +26,7 @@ class FavoritesRepositoryImpl(
 
     override fun observeFavorites(type: ContentType?): Flow<List<Favorite>> =
         (if (type == null) dao.observeAll() else dao.observeByType(type.name))
-            .map { list -> list.mapNotNull { it.toModel() } }
+            .map { list -> list.mapNotNull { it.toModel() } }.flowOn(Dispatchers.Default)
 
     override fun observeIsFavorite(type: ContentType, contentId: String): Flow<Boolean> =
         dao.observeExists(type.name, contentId).distinctUntilChanged()
@@ -45,12 +46,12 @@ class HistoryRepositoryImpl(
     override fun observeContinueWatching(limit: Int): Flow<List<WatchHistory>> =
         // Over-fetch: finished items and older episodes of the same series are filtered in Kotlin.
         dao.observeNonChannel(ContentType.Channel.name, (limit.coerceAtLeast(1) * 5).coerceAtMost(500))
-            .map { rows -> ContinueWatching.select(rows.mapNotNull { it.toModel() }, limit) }
+            .map { rows -> ContinueWatching.select(rows.mapNotNull { it.toModel() }, limit) }.flowOn(Dispatchers.Default)
             .distinctUntilChanged()
 
     override fun observeRecentChannels(limit: Int): Flow<List<WatchHistory>> =
         dao.observeByType(ContentType.Channel.name, limit.coerceAtLeast(0))
-            .map { rows -> rows.mapNotNull { it.toModel() } }
+            .map { rows -> rows.mapNotNull { it.toModel() } }.flowOn(Dispatchers.Default)
 
     override suspend fun get(type: ContentType, contentId: String): WatchHistory? =
         withContext(Dispatchers.IO) { dao.get(type.name, contentId)?.toModel() }

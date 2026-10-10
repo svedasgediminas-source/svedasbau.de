@@ -196,10 +196,10 @@ class GuideLogicTest {
         assertEquals(GuideAction.PlayCatchup, decideGuideAction(archive, at(2026, 10, 8, 21), at(2026, 10, 8, 22), now))
         assertEquals(GuideAction.ArchiveExpired, decideGuideAction(archive, at(2026, 10, 6, 21), at(2026, 10, 6, 22), now))
         assertEquals(GuideAction.ArchiveUnavailable, decideGuideAction(CatchupCapability.None, at(2026, 10, 10, 18), at(2026, 10, 10, 19), now))
-        assertEquals(
-            GuideAction.ArchiveUnavailable,
-            decideGuideAction(CatchupCapability.Supported(CatchupType.Default, 0), at(2026, 10, 10, 18), at(2026, 10, 10, 19), now),
-        )
+        // Declared catch-up with unknown day count uses the default window (7 days).
+        val unknownWindow = CatchupCapability.Supported(CatchupType.Default, 0)
+        assertEquals(GuideAction.PlayCatchup, decideGuideAction(unknownWindow, at(2026, 10, 10, 18), at(2026, 10, 10, 19), now))
+        assertEquals(GuideAction.ArchiveExpired, decideGuideAction(unknownWindow, at(2026, 10, 2, 18), at(2026, 10, 2, 19), now))
         // boundary: a programme that ended exactly now is past
         assertTrue(isInArchive(archive, at(2026, 10, 10, 19), now, now))
         assertFalse(isInArchive(archive, at(2026, 10, 10, 19), now + 1, now))

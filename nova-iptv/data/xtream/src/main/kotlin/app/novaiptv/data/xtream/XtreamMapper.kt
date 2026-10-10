@@ -1,6 +1,8 @@
 package app.novaiptv.data.xtream
 
+import app.novaiptv.core.common.AppResult
 import app.novaiptv.core.common.Limits
+import app.novaiptv.core.common.UrlValidator
 import app.novaiptv.core.model.CatchupCapability
 import app.novaiptv.core.model.CatchupType
 import app.novaiptv.core.model.Channel
@@ -50,7 +52,9 @@ internal object XtreamMapper {
 
     fun secondsToMillis(e: JsonElement?): Long? = e.long()?.takeIf { it > 0 }?.let { it * 1000 }
 
-    fun image(e: JsonElement?): String? = e.str()?.takeIf { it.length <= Limits.MAX_URL_LENGTH }
+    // Same rule as M3U logos: only http(s) images reach the image loader.
+    fun image(e: JsonElement?): String? =
+        e.str()?.takeIf { it.length <= Limits.MAX_URL_LENGTH && UrlValidator.validateSourceUrl(it) is AppResult.Ok }
 
     fun categories(root: JsonElement?, playlistId: Long): List<VodCategory> =
         root.items().mapNotNull { el ->

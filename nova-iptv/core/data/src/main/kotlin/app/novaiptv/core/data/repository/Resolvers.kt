@@ -1,6 +1,7 @@
 package app.novaiptv.core.data.repository
 
 import app.novaiptv.core.data.db.PlaylistDao
+import app.novaiptv.core.data.db.PlaylistTypes
 import app.novaiptv.core.data.logic.CatchupWindow
 import app.novaiptv.core.data.logic.StreamFormats
 import app.novaiptv.core.data.logic.XtreamPlaceholders
@@ -43,10 +44,12 @@ class CatchupResolverImpl(
 
     override suspend fun resolve(channel: Channel, program: EpgProgram, nowMillis: Long): StreamSource? {
         val capability = channel.catchup as? CatchupCapability.Supported ?: return null
-        if (!CatchupWindow.isAvailable(program.startMillis, capability.days, nowMillis)) return null
+        if (!CatchupWindow.isAvailable(program.startMillis, capability.windowDays, nowMillis)) return null
 
-        val url = if (capability.type == CatchupType.Xtream) {
-            val playlist = withContext(Dispatchers.IO) { playlistDao.get(channel.playlistId) } ?: return null
+        val playlist = withContext(Dispatchers.IO) { playlistDao.get(channel.playlistId) } ?: return null
+        // catchup="xc" in an M3U playlist also maps to CatchupType.Xtream, but only real Xtream
+        // playlists have a portal URL and stored credentials; M3U uses the template builder.
+        val url = if (capability.type == CatchupType.Xtream && playlist.type == PlaylistTypes.XTREAM) {
             val streamId = channel.id.substringAfterLast(':')
             if (streamId.isEmpty()) return null
             XtreamUrls.timeshift(

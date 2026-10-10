@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -66,6 +67,7 @@ class EpgRepositoryImpl(
         return chunkedInFlow<ProgramEntity>(ids) { programDao.observeRange(it, nowMillis, nowMillis + DAY_MILLIS) }
             .map { rows -> NowNextSelector.select(rows.map { it.toModel() }, nowMillis) }
             .distinctUntilChanged()
+            .flowOn(Dispatchers.Default)
     }
 
     override suspend fun programs(epgId: String, fromMillis: Long, toMillis: Long): List<EpgProgram> =
