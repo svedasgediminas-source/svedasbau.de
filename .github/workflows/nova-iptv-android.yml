@@ -52,6 +52,13 @@ jobs:
           echo "===== FIRST LINES OF EACH FAILURE ====="
           grep -A4 'What went wrong' build.log | grep -vE '^\s*$|Try:' | head -60 || true
 
+      - name: Test summary
+        if: always()
+        run: |
+          python3 ci/test_summary.py "Unit tests" '**/build/test-results/**/*.xml'
+          echo "===== APKs ====="
+          find app/build/outputs/apk -name '*.apk' -printf '%p %s bytes\n' 2>/dev/null || true
+
       - name: Upload APKs
         if: always()
         uses: actions/upload-artifact@v4
@@ -69,3 +76,81 @@ jobs:
             nova-iptv/**/build/reports/**
             nova-iptv/**/build/test-results/**
           if-no-files-found: ignore
+
+  emulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: nova-iptv
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Build app and test APKs
+        run: set -o pipefail; ./gradlew assembleDebug :app:assembleDebugAndroidTest :core:data:assembleDebugAndroidTest --continue 2>&1 | tee -a build.log
+
+      - name: Android TV emulator (instrumented tests + smoke test)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: android-tv
+          arch: x86
+          profile: tv_1080p
+          disable-animations: true
+          emulator-boot-timeout: 900
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          working-directory: nova-iptv
+          script: bash ci/emulator-run.sh
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-iptv-tv-screenshots
+          path: nova-iptv/build/emulator/screens/*.png
+          if-no-files-found: warn
+
+      - name: Upload emulator logs and instrumented reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-iptv-emulator-reports
+          path: |
+            nova-iptv/build/emulator/**
+            nova-iptv/**/build/outputs/androidTest-results/**
+            nova-iptv/**/build/reports/androidTests/**
+          if-no-files-found: ignore
+
+      - name: Emulator summary
+        if: always()
+        run: |
+          echo "===== BUILD ERRORS ====="
+          grep -E '^e: ' build.log 2>/dev/null | sed -E 's#file:///home/runner/work/svedasbau.de/svedasbau.de/nova-iptv/##' | sort -u | head -40 || true
+          grep -E '^e: ' build/emulator/connected.log 2>/dev/null | sed -E 's#file:///home/runner/work/svedasbau.de/svedasbau.de/nova-iptv/##' | sort -u | head -40 || true
+          echo "===== DEVICE ====="
+          echo "sdk=$(cat build/emulator/device-sdk.txt 2>/dev/null) characteristics=$(cat build/emulator/device-characteristics.txt 2>/dev/null) $(cat build/emulator/device-leanback.txt 2>/dev/null | tr '\n' ' ')"
+          echo "===== CONNECTED GRADLE (exit $(cat build/emulator/connected.exit 2>/dev/null)) ====="
+          grep -E 'FAILED|Tests on|What went wrong|No tests|BUILD ' build/emulator/connected.log 2>/dev/null | head -30 || true
+          grep -A3 'What went wrong' build/emulator/connected.log 2>/dev/null | head -20 || true
+          echo "===== QA MEASUREMENTS ====="
+          grep -h 'NovaQA' build/emulator/logcat-instrumented.txt 2>/dev/null | sed -E 's/^.*NovaQA *: //' | head -40 || true
+          echo "===== SMOKE ====="
+          cat build/emulator/smoke.txt 2>/dev/null || true
+          ls build/emulator/screens 2>/dev/null | tr '\n' ' '; echo
+          echo "===== CRASHES ====="
+          cat build/emulator/crash-status.txt 2>/dev/null || echo "crash scan did not run"
+          head -80 build/emulator/crashes.txt 2>/dev/null || true
+          python3 ci/test_summary.py "Instrumented tests" '**/build/outputs/androidTest-results/**/*.xml'
