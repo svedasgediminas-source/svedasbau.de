@@ -16,12 +16,17 @@
 
 ## Remaining
 See `NEXT_TASKS.md` (real-device test, trademark check, privacy policy, release signing,
-reminders, manual EPG mapping UI, Guide group filter, UI tests for remaining screens).
+UI tests for Movies / Series / Favorites / Home rails).
 
 ## Latest test results
-- Last fully green CI run before the current batch: 38013915754 (205 unit, 13 instrumented, lint 0 errors).
-- Run 38017141229: build green; emulator found a real crash when leaving the player
-  (NetworkOnMainThreadException) – fixed in 3ba6128, re-verification pending.
+- Run 38021873025 (green): 304 unit tests, 26 instrumented tests on the Android TV emulator
+  (app 21, core/data 5), no FATAL EXCEPTION / ANR. New Compose UI tests: LiveTvScreenTest,
+  GuideScreenTest, SearchScreenTest, PlaylistsSettingsTest, PlayerOverlayTest (seeded via
+  SeededPlaylistRule, driven by NovaUiDriver with D-pad/MENU/long-press keys).
+- The NetworkOnMainThreadException crash when leaving the player is verified fixed
+  (PlayerOverlayTest: BACK from playing, loading and error states).
+- UI tests found and fixed: BACK in the player needed two presses when a button was focused
+  (track panel, controls, error panel) – Compose turned the first BACK into a focus exit.
 
 ## Known issues
 - Archive of a programme still airing may lag; first live rewind step is at least 30 s.

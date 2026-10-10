@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -470,10 +471,8 @@ private fun SeekPreviewBox(preview: SeekPreview, modifier: Modifier = Modifier) 
 
 @Composable
 private fun speedLabel(speed: Float): String {
-    val context = LocalContext.current
-    val separator = remember(context) {
-        DecimalFormatSymbols.getInstance(context.resources.configuration.locales[0]).decimalSeparator
-    }
+    val locale = LocalConfiguration.current.locales[0]
+    val separator = remember(locale) { DecimalFormatSymbols.getInstance(locale).decimalSeparator }
     return PlaybackSpeeds.label(speed, separator)
 }
 

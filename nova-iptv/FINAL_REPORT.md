@@ -39,7 +39,8 @@ Parallel subagents with disjoint file ownership; the coordinator owned Gradle, c
 | Feature | Status | How it was verified |
 |---|---|---|
 | Home | DONE | onboarding shown on clean install (emulator UI test); content rails NOT TESTED in UI |
-| Live TV | DONE – NOT TESTED in UI | data path tested (import → channels/groups); screen compiled, logic unit-tested |
+| Live TV | DONE | emulator UI tests (LiveTvScreenTest): group counts, D-pad group filter, current programme in rows, MENU options, favourite via MENU and long-press OK, Fix TV guide dialog |
+| TV Guide | DONE | emulator UI tests (GuideScreenTest): seeded programmes in the grid, LIVE badge, group chips filter rows, OK on a future programme offers "Remind me" |
 | M3U (URL) | DONE | unit tests + emulator end-to-end: 3 channels / 2 groups imported from a local server |
 | M3U (file) | DONE – NOT TESTED | needs a TV with a document picker; handled gracefully when none exists |
 | Xtream | DONE – PARTIAL | 32 unit tests against a mock server (login, wrong password, expired, odd data); NOT TESTED against a real provider |
@@ -47,33 +48,39 @@ Parallel subagents with disjoint file ownership; the coordinator owned Gradle, c
 | Catch-up | DONE – PARTIAL | URL building unit-tested for all catch-up types; NOT TESTED against a real archive server |
 | Movies | DONE – NOT TESTED in UI | logic unit-tested (resume, formatting, filters) |
 | Series | DONE – NOT TESTED in UI | logic unit-tested (season/episode order, next episode) |
-| Search | DONE – NOT TESTED in UI | ranking/merging unit-tested |
+| Search | DONE | ranking/merging unit-tested; emulator UI test (SearchScreenTest): channel and programme results, no-results state |
 | Favorites | DONE | persistence across app restart tested in emulator |
-| Settings | DONE | opened via top bar in emulator UI test; D-pad works inside |
-| Player | DONE | emulator: Apple public HLS test stream plays (Playing after 2.3 s, position advances); broken stream stops after 3 retries (no loop) |
+| Settings | DONE | opened via top bar in emulator UI test; Settings > Playlists lists the seeded playlist as Active, manager opens with D-pad (PlaylistsSettingsTest) |
+| Player | DONE | emulator: Apple public HLS test stream plays (Playing after 2.3 s, position advances); broken stream stops after 3 retries (no loop); UI test from Live TV: overlay name/LIVE/now, MENU panel, CH+, INFO controls, BACK to Live TV without crash, error panel (PlayerOverlayTest) |
 | Languages | DONE – NOT TESTED | en / lt / de / ru strings complete; switching not UI-tested |
 | Remote control | PARTIAL | D-pad sequences in emulator without crash; NOT TESTED on a physical TV |
 
-## TEST RESULTS (runs 38011972795 and 38013915754, real numbers)
+## TEST RESULTS (run 38021873025, real numbers)
+
+https://github.com/svedasgediminas-source/svedasbau.de/actions/runs/38021873025 – build: success, emulator: success.
 
 | Suite | Run | Passed | Failed | Not run |
 |---|---|---|---|---|
-| Unit tests (JVM + Android unit) | 205 | 205 | 0 | 0 |
-| Instrumented tests on Android TV emulator (API 34, leanback) | 13 | 13 | 0 | 0 |
+| Unit tests (JVM + Android unit) | 304 | 304 | 0 | 0 |
+| Instrumented tests on Android TV emulator (API 34, leanback) | 26 | 26 | 0 | 0 |
 
-Unit tests per module: app 55, core/common 10, core/data 26, core/player 24, data/epg 20, data/playlist 38, data/xtream 32.
-Locally after the review fixes: 100 JVM tests, 0 failures.
+Unit tests per module: app 81, core/common 19, core/data 36, core/domain 20, core/player 50, data/epg 20, data/playlist 46, data/xtream 32.
+Instrumented per module: app 21, core/data 5. The app suite has Compose UI tests driven with D-pad / MENU /
+long-press key events on a playlist seeded from a MockWebServer on the device (10 channels, 3 groups, XMLTV
+around "now"), imported through the app's own DataGraph: LiveTvScreenTest (4), GuideScreenTest (3),
+SearchScreenTest (2), PlaylistsSettingsTest (1), PlayerOverlayTest (3), plus MainActivitySmokeTest (3),
+EndToEndDataTest (3), PlaybackTest (2).
 
 Emulator smoke run: install → launch → D-pad DOWN/RIGHT/CENTER/BACK/UP/RIGHT×8/CENTER → force-stop →
 relaunch: app running at every step, **no FATAL EXCEPTION / ANR** in logcat. 9 screenshots in artifact
 `nova-iptv-tv-screenshots` (not inspected by me – artifact download is blocked in this container).
 
-Not done: tests on a physical TV, tests with a real Xtream provider, UI tests for Live TV / Guide /
-Movies / Series / Search, performance profiling on a low-RAM device, language-switch UI test.
+Not done: tests on a physical TV, tests with a real Xtream provider, UI tests for Movies / Series /
+Favorites screen / Home content rails, performance profiling on a low-RAM device, language-switch UI test.
 
 ### Acceptance criteria (brief §14)
 1. Compiles – **yes**. 2. Real APK – **yes**. 3. Launches in Android TV emulator – **yes**.
-4. Main screens by remote – **partially verified** (onboarding, top bar, Settings). 5. Add M3U – **yes** (emulator E2E).
+4. Main screens by remote – **verified in the emulator** for Live TV, TV Guide, Search, Settings > Playlists and the player (Movies/Series not UI-tested). 5. Add M3U – **yes** (emulator E2E).
 6. Channels in categories – **yes** (data level). 7. Legal test stream plays – **yes** (Apple HLS sample).
 8. Favourites survive restart – **yes**. 9. Invalid data does not crash – **yes** (garbage/empty/404/invalid URLs).
 10. No known critical bugs in the main flow – **none known**; open items below.
