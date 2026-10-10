@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "app.novaiptv"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "app.novaiptv.tv"

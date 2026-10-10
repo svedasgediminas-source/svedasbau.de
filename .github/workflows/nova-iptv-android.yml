@@ -45,9 +45,12 @@ jobs:
       - name: Error summary
         if: failure()
         run: |
-          echo "===== ERROR SUMMARY ====="
-          grep -E '^e: |^w: .*(unresolved|deprecated)|error:|What went wrong|FAILED|Unresolved reference|Cannot find|Could not resolve' build.log | grep -v '^w: ' | sort -u | head -150 || true
-          grep -A8 'What went wrong' build.log | head -80 || true
+          echo "===== KOTLIN ERRORS ====="
+          grep -E '^e: ' build.log | sed -E 's#file:///home/runner/work/svedasbau.de/svedasbau.de/nova-iptv/##' | sort -u | head -200 || true
+          echo "===== FAILED TASKS ====="
+          grep -E '^> Task .* FAILED' build.log | sort -u || true
+          echo "===== FIRST LINES OF EACH FAILURE ====="
+          grep -A4 'What went wrong' build.log | grep -vE '^\s*$|Try:' | head -60 || true
 
       - name: Upload APKs
         if: always()
