@@ -7,7 +7,7 @@ android {
     namespace = "app.novaiptv.core.data"
     compileSdk = 36
     defaultConfig {
-        minSdk = 23
+        minSdk = 26
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     compileOptions {

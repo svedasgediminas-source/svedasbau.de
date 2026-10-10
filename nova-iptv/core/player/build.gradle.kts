@@ -5,7 +5,7 @@ plugins {
 android {
     namespace = "app.novaiptv.core.player"
     compileSdk = 36
-    defaultConfig { minSdk = 23 }
+    defaultConfig { minSdk = 26 }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
