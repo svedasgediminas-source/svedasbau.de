@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
+import app.novaiptv.core.data.logic.Reorder
 import kotlinx.coroutines.flow.Flow
 
 /** SQLite's bind-parameter limit is 999 on older Android versions. */
@@ -45,31 +46,31 @@ abstract class PlaylistDao {
     abstract suspend fun setEpgUrls(id: Long, urls: String, manual: Boolean)
 
     @Query("DELETE FROM episodes WHERE seriesId IN (SELECT id FROM series WHERE playlistId = :id)")
-    protected abstract suspend fun deleteEpisodes(id: Long)
+    abstract suspend fun deleteEpisodes(id: Long)
 
     @Query("DELETE FROM seasons WHERE seriesId IN (SELECT id FROM series WHERE playlistId = :id)")
-    protected abstract suspend fun deleteSeasons(id: Long)
+    abstract suspend fun deleteSeasons(id: Long)
 
     @Query("DELETE FROM series WHERE playlistId = :id")
-    protected abstract suspend fun deleteSeries(id: Long)
+    abstract suspend fun deleteSeries(id: Long)
 
     @Query("DELETE FROM movies WHERE playlistId = :id")
-    protected abstract suspend fun deleteMovies(id: Long)
+    abstract suspend fun deleteMovies(id: Long)
 
     @Query("DELETE FROM vod_categories WHERE playlistId = :id")
-    protected abstract suspend fun deleteCategories(id: Long)
+    abstract suspend fun deleteCategories(id: Long)
 
     @Query("DELETE FROM channels WHERE playlistId = :id")
-    protected abstract suspend fun deleteChannels(id: Long)
+    abstract suspend fun deleteChannels(id: Long)
 
     @Query("DELETE FROM favorites WHERE playlistId = :id")
-    protected abstract suspend fun deleteFavorites(id: Long)
+    abstract suspend fun deleteFavorites(id: Long)
 
     @Query("DELETE FROM watch_history WHERE playlistId = :id")
-    protected abstract suspend fun deleteHistory(id: Long)
+    abstract suspend fun deleteHistory(id: Long)
 
     @Query("DELETE FROM playlists WHERE id = :id")
-    protected abstract suspend fun deleteRow(id: Long)
+    abstract suspend fun deleteRow(id: Long)
 
     /** Explicit deletes (does not rely on foreign_keys being enabled), in one transaction. */
     @Transaction
@@ -161,7 +162,7 @@ abstract class ChannelDao {
     abstract suspend fun setManualEpgId(id: String, epgId: String?)
 
     @Query("UPDATE channels SET resolvedEpgId = :epgId WHERE id = :id")
-    protected abstract suspend fun setResolvedEpgId(id: String, epgId: String?)
+    abstract suspend fun setResolvedEpgId(id: String, epgId: String?)
 
     @Transaction
     open suspend fun setResolvedEpgIds(values: Map<String, String?>) {
@@ -172,13 +173,13 @@ abstract class ChannelDao {
         "SELECT id, manualEpgId, resolvedEpgId FROM channels " +
             "WHERE playlistId = :playlistId AND (manualEpgId IS NOT NULL OR resolvedEpgId IS NOT NULL)",
     )
-    protected abstract suspend fun mappings(playlistId: Long): List<ChannelMappingRow>
+    abstract suspend fun mappings(playlistId: Long): List<ChannelMappingRow>
 
     @Query("DELETE FROM channels WHERE playlistId = :playlistId")
-    protected abstract suspend fun deleteForPlaylist(playlistId: Long)
+    abstract suspend fun deleteForPlaylist(playlistId: Long)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    protected abstract suspend fun insertAll(channels: List<ChannelEntity>)
+    abstract suspend fun insertAll(channels: List<ChannelEntity>)
 
     /**
      * Replaces all channels of a playlist in one transaction. EPG mappings (manual overrides and
@@ -233,10 +234,10 @@ abstract class ProgramDao {
     // Blocking variants: used from inside the streaming XMLTV parser callbacks (already on IO).
 
     @Query("DELETE FROM epg_programs WHERE epgId IN (:epgIds)")
-    protected abstract fun deleteForIdsBlocking(epgIds: List<String>)
+    abstract fun deleteForIdsBlocking(epgIds: List<String>)
 
     @Insert
-    protected abstract fun insertBlocking(programs: List<ProgramEntity>)
+    abstract fun insertBlocking(programs: List<ProgramEntity>)
 
     /** Deletes the old programmes of [clearEpgIds], then inserts [programs], atomically. */
     @Transaction
@@ -311,40 +312,40 @@ abstract class VodDao {
     // Writes
 
     @Query("DELETE FROM vod_categories WHERE playlistId = :playlistId AND kind = :kind")
-    protected abstract suspend fun deleteCategories(playlistId: Long, kind: String)
+    abstract suspend fun deleteCategories(playlistId: Long, kind: String)
 
     @Query("DELETE FROM movies WHERE playlistId = :playlistId")
-    protected abstract suspend fun deleteMovies(playlistId: Long)
+    abstract suspend fun deleteMovies(playlistId: Long)
 
     @Query("DELETE FROM episodes WHERE seriesId IN (SELECT id FROM series WHERE playlistId = :playlistId)")
-    protected abstract suspend fun deleteEpisodesOfPlaylist(playlistId: Long)
+    abstract suspend fun deleteEpisodesOfPlaylist(playlistId: Long)
 
     @Query("DELETE FROM seasons WHERE seriesId IN (SELECT id FROM series WHERE playlistId = :playlistId)")
-    protected abstract suspend fun deleteSeasonsOfPlaylist(playlistId: Long)
+    abstract suspend fun deleteSeasonsOfPlaylist(playlistId: Long)
 
     @Query("DELETE FROM series WHERE playlistId = :playlistId")
-    protected abstract suspend fun deleteSeries(playlistId: Long)
+    abstract suspend fun deleteSeries(playlistId: Long)
 
     @Query("DELETE FROM seasons WHERE seriesId = :seriesId")
-    protected abstract suspend fun deleteSeasons(seriesId: String)
+    abstract suspend fun deleteSeasons(seriesId: String)
 
     @Query("DELETE FROM episodes WHERE seriesId = :seriesId")
-    protected abstract suspend fun deleteEpisodes(seriesId: String)
+    abstract suspend fun deleteEpisodes(seriesId: String)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    protected abstract suspend fun insertCategories(items: List<VodCategoryEntity>)
+    abstract suspend fun insertCategories(items: List<VodCategoryEntity>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    protected abstract suspend fun insertMovies(items: List<MovieEntity>)
+    abstract suspend fun insertMovies(items: List<MovieEntity>)
 
     @Upsert
-    protected abstract suspend fun upsertSeries(items: List<SeriesEntity>)
+    abstract suspend fun upsertSeries(items: List<SeriesEntity>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    protected abstract suspend fun insertSeasons(items: List<SeasonEntity>)
+    abstract suspend fun insertSeasons(items: List<SeasonEntity>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    protected abstract suspend fun insertEpisodes(items: List<EpisodeEntity>)
+    abstract suspend fun insertEpisodes(items: List<EpisodeEntity>)
 
     @Transaction
     open suspend fun replaceMovies(playlistId: Long, categories: List<VodCategoryEntity>, movies: List<MovieEntity>) {
@@ -386,22 +387,22 @@ abstract class FavoriteDao {
     abstract fun observeExists(type: String, contentId: String): Flow<Boolean>
 
     @Query("SELECT * FROM favorites WHERE type = :type ORDER BY sortOrder, addedAt")
-    protected abstract suspend fun listByType(type: String): List<FavoriteEntity>
+    abstract suspend fun listByType(type: String): List<FavoriteEntity>
 
     @Query("SELECT * FROM favorites WHERE type = :type AND contentId = :contentId")
-    protected abstract suspend fun get(type: String, contentId: String): FavoriteEntity?
+    abstract suspend fun get(type: String, contentId: String): FavoriteEntity?
 
     @Query("SELECT COALESCE(MAX(sortOrder), -1) FROM favorites WHERE type = :type")
-    protected abstract suspend fun maxSortOrder(type: String): Int
+    abstract suspend fun maxSortOrder(type: String): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    protected abstract suspend fun insert(favorite: FavoriteEntity)
+    abstract suspend fun insert(favorite: FavoriteEntity)
 
     @Query("DELETE FROM favorites WHERE type = :type AND contentId = :contentId")
-    protected abstract suspend fun delete(type: String, contentId: String)
+    abstract suspend fun delete(type: String, contentId: String)
 
     @Query("UPDATE favorites SET sortOrder = :sortOrder WHERE type = :type AND contentId = :contentId")
-    protected abstract suspend fun setSortOrder(type: String, contentId: String, sortOrder: Int)
+    abstract suspend fun setSortOrder(type: String, contentId: String, sortOrder: Int)
 
     /** Returns true when the item is a favourite after the call. */
     @Transaction
@@ -418,7 +419,7 @@ abstract class FavoriteDao {
     @Transaction
     open suspend fun move(type: String, contentId: String, newIndex: Int) {
         val ids = listByType(type).map { it.contentId }
-        val reordered = app.novaiptv.core.data.logic.Reorder.move(ids, contentId, newIndex)
+        val reordered = Reorder.move(ids, contentId, newIndex)
         reordered.forEachIndexed { index, id -> setSortOrder(type, id, index) }
     }
 }
