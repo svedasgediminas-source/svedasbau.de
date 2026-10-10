@@ -1,5 +1,9 @@
 package app.novaiptv.feature.livetv
 
+import app.novaiptv.core.domain.ChannelListItem
+import app.novaiptv.core.domain.toListItem
+import app.novaiptv.core.model.CatchupCapability
+import app.novaiptv.core.model.CatchupType
 import app.novaiptv.core.model.Channel
 import app.novaiptv.core.model.ChannelGroup
 import app.novaiptv.core.model.ContentType
@@ -13,8 +17,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LiveTvLogicTest {
-    private fun ch(id: String, number: Int = 1, name: String = id, group: String? = null, adult: Boolean = false) =
+    private fun full(id: String, number: Int = 1, name: String = id, group: String? = null, adult: Boolean = false) =
         Channel(id, 1L, number, name, group, null, null, StreamSource("http://x/$id"), isAdult = adult)
+
+    private fun ch(id: String, number: Int = 1, name: String = id, group: String? = null, adult: Boolean = false) =
+        ChannelListItem(id, 1L, number, name, group, null, null, hasCatchup = false, catchupDays = 0, isAdult = adult)
 
     @Test fun adultGroupDetection() {
         assertTrue(isAdultGroupName("XXX Adult"))
@@ -43,6 +50,27 @@ class LiveTvLogicTest {
         assertEquals(listOf("a"), filterChannels(list, " bbc ", hideAdult = true).map { it.id })
         assertEquals(listOf("b"), filterChannels(list, "2", hideAdult = true).map { it.id })
         assertEquals(listOf("d"), filterChannels(list, "12", hideAdult = false).map { it.id })
+    }
+
+    @Test fun fullChannelFilterMatchesSlimFilter() {
+        val full = listOf(full("a", 1, "BBC One"), full("c", 3, "Hot", adult = true), full("d", 12, "Sport 1", group = "XXX"))
+        assertEquals(listOf("a"), filterChannels(full, "", hideAdult = true).map { it.id })
+        assertEquals(listOf("d"), filterChannels(full, "12", hideAdult = false).map { it.id })
+        assertTrue(isAdultChannel(full[1]))
+        assertTrue(isAdultChannel(full[2].toListItem()))
+        assertFalse(isAdultChannel(full[0].toListItem()))
+    }
+
+    @Test fun listItemFromChannelKeepsRowFields() {
+        val c = Channel(
+            "p:1", 7L, 42, "News", "Info", "http://logo", "news.de", StreamSource("http://x"),
+            catchup = CatchupCapability.Supported(CatchupType.Default, 3),
+        )
+        assertEquals(
+            ChannelListItem("p:1", 7L, 42, "News", "Info", "http://logo", "news.de", hasCatchup = true, catchupDays = 3, isAdult = false),
+            c.toListItem(),
+        )
+        assertFalse(full("x").toListItem().hasCatchup)
     }
 
     @Test fun favoritesOrderAndPlaylistScope() {

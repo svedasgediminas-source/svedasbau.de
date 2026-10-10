@@ -23,6 +23,21 @@ data class M3uParseResult(
 )
 
 /**
+ * Result of [M3uParser.parseStreaming]: everything except the channels themselves, which were
+ * handed to the caller batch by batch.
+ */
+data class M3uStreamSummary(
+    val channelCount: Int,
+    /** Distinct `groupName` values of the emitted channels; "no group" counts as one group. */
+    val groupCount: Int,
+    /** Same rules as [M3uParseResult.epgUrls]. */
+    val epgUrls: List<String>,
+    val skipped: Int,
+    /** Same rules as [M3uParseResult.warnings]. */
+    val warnings: List<String>,
+)
+
+/**
  * Streaming M3U / M3U8 (extended M3U) parser.
  *
  * - Reads line by line through a bounded line reader; the file is never held in memory.
@@ -39,9 +54,34 @@ data class M3uParseResult(
  */
 class M3uParser {
 
-    /** Streaming, line-by-line; never loads the whole file in memory. Tolerates malformed entries. */
-    fun parse(input: java.io.InputStream, playlistId: Long, onProgress: ((parsedChannels: Int) -> Unit)? = null): M3uParseResult =
-        Session(playlistId, onProgress).run(input)
+    /**
+     * Collects every channel into one list. Convenient for small playlists and tests; imports of
+     * large playlists should use [parseStreaming] so the channel list is never held in memory.
+     */
+    fun parse(input: InputStream, playlistId: Long, onProgress: ((parsedChannels: Int) -> Unit)? = null): M3uParseResult {
+        val channels = ArrayList<Channel>()
+        val summary = Session(playlistId, DEFAULT_BATCH_SIZE, onProgress) { batch -> channels.addAll(batch) }.run(input)
+        return M3uParseResult(channels, summary.epgUrls, summary.skipped, summary.warnings)
+    }
+
+    /**
+     * Streaming parse: channels are handed to [onBatch] in file order, in lists of at most
+     * [batchSize] entries (only the last one may be smaller). Only the current batch is held in
+     * memory; besides it the parser keeps the set of channel ids (for duplicate disambiguation)
+     * and the set of group names (for [M3uStreamSummary.groupCount]).
+     *
+     * Every list passed to [onBatch] is a fresh instance the callee may keep. An exception thrown
+     * by [onBatch] aborts the parse and propagates to the caller.
+     */
+    fun parseStreaming(
+        input: InputStream,
+        playlistId: Long,
+        batchSize: Int = DEFAULT_BATCH_SIZE,
+        onBatch: (List<Channel>) -> Unit,
+    ): M3uStreamSummary {
+        require(batchSize > 0) { "batchSize must be positive" }
+        return Session(playlistId, batchSize, null, onBatch).run(input)
+    }
 
     private class Header(
         val catchup: String? = null,
@@ -57,9 +97,13 @@ class M3uParser {
 
     private class Session(
         private val playlistId: Long,
+        private val batchSize: Int,
         private val onProgress: ((Int) -> Unit)?,
+        private val onBatch: (List<Channel>) -> Unit,
     ) {
-        private val channels = ArrayList<Channel>()
+        private var batch = ArrayList<Channel>(minOf(batchSize, 1024))
+        private var channelCount = 0
+        private val groups = HashSet<String?>()
         private val epgUrls = LinkedHashSet<String>()
         private val warnings = ArrayList<String>()
         private var suppressedWarnings = 0
@@ -78,7 +122,7 @@ class M3uParser {
         private var vlcReferrer: String? = null
         private val vlcHeaders = LinkedHashMap<String, String>()
 
-        fun run(input: InputStream): M3uParseResult {
+        fun run(input: InputStream): M3uStreamSummary {
             val reader = M3uLineReader(InputStreamReader(input, Charsets.UTF_8), Limits.MAX_LINE_LENGTH)
             var first = true
             var limitReached = false
@@ -114,13 +158,14 @@ class M3uParser {
                     resetEntry()
                     continue
                 }
-                if (channels.size >= Limits.MAX_CHANNELS_PER_PLAYLIST) {
+                if (channelCount >= Limits.MAX_CHANNELS_PER_PLAYLIST) {
                     limitReached = true
                     break
                 }
                 buildChannel(p, line)
                 resetEntry()
             }
+            flush()
             if (pending != null) {
                 skipped++
                 warn("Line ${pending!!.lineNumber}: #EXTINF without stream URL at end of file")
@@ -131,15 +176,22 @@ class M3uParser {
             if (!sawHeader) {
                 if (sawExtinf) warn("File does not start with #EXTM3U; parsed anyway")
                 else warn("Not an M3U playlist (no #EXTM3U header and no #EXTINF entries)")
-            } else if (channels.isEmpty() && skipped == 0) {
+            } else if (channelCount == 0 && skipped == 0) {
                 warn("Playlist contains no channels")
             }
             if (orphanLines > 0 && sawExtinf) {
                 warn("$orphanLines line(s) without a preceding #EXTINF were ignored")
             }
             if (suppressedWarnings > 0) warnings.add("… and $suppressedWarnings more warning(s)")
-            onProgress?.invoke(channels.size)
-            return M3uParseResult(channels, epgUrls.toList(), skipped, warnings)
+            onProgress?.invoke(channelCount)
+            return M3uStreamSummary(channelCount, groups.size, epgUrls.toList(), skipped, warnings.toList())
+        }
+
+        private fun flush() {
+            if (batch.isEmpty()) return
+            val out = batch
+            batch = ArrayList(minOf(batchSize, 1024))
+            onBatch(out)
         }
 
         private fun warn(msg: String) {
@@ -220,7 +272,7 @@ class M3uParser {
                 return
             }
             val a = p.attributes
-            val index = channels.size + 1
+            val index = channelCount + 1
             val tvgName = a["tvg-name"]?.trim()?.takeIf { it.isNotEmpty() }
             val name = clip(p.title?.takeIf { it.isNotEmpty() } ?: tvgName ?: "Channel $index")
             val group = (a["group-title"]?.trim()?.takeIf { it.isNotEmpty() } ?: extGrp)?.let(::clip)
@@ -259,7 +311,7 @@ class M3uParser {
             }
             tvgName?.let { extras["tvg-name"] = it.take(MAX_EXTRA_VALUE) }
 
-            channels.add(
+            batch.add(
                 Channel(
                     id = "$playlistId:${stableKey(epgId, url, name)}",
                     playlistId = playlistId,
@@ -274,7 +326,10 @@ class M3uParser {
                     extras = extras,
                 ),
             )
-            if (onProgress != null && channels.size % PROGRESS_EVERY == 0) onProgress.invoke(channels.size)
+            channelCount++
+            groups.add(group)
+            if (batch.size >= batchSize) flush()
+            if (onProgress != null && channelCount % PROGRESS_EVERY == 0) onProgress.invoke(channelCount)
         }
 
         private fun catchupOf(a: Map<String, String>): CatchupCapability {
@@ -317,6 +372,8 @@ class M3uParser {
     }
 
     companion object {
+        /** Default [parseStreaming] batch size; also matches the Room insert chunk size. */
+        const val DEFAULT_BATCH_SIZE = 500
         private const val MAX_WARNINGS = 50
         private const val MAX_EXTRAS = 32
         private const val MAX_EXTRA_VALUE = 1024

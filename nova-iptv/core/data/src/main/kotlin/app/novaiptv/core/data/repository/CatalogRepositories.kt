@@ -13,7 +13,9 @@ import app.novaiptv.core.data.db.VodKinds
 import app.novaiptv.core.data.logic.SearchText
 import app.novaiptv.core.data.mapper.assembleSeasons
 import app.novaiptv.core.data.mapper.toEntity
+import app.novaiptv.core.data.mapper.toListItem
 import app.novaiptv.core.data.mapper.toModel
+import app.novaiptv.core.domain.ChannelListItem
 import app.novaiptv.core.domain.ChannelRepository
 import app.novaiptv.core.domain.CredentialStore
 import app.novaiptv.core.domain.VodRepository
@@ -58,6 +60,22 @@ class ChannelRepositoryImpl(
     override fun observeChannels(playlistId: Long, group: String?): Flow<List<Channel>> =
         (if (group == null) dao.observeAll(playlistId) else dao.observeByGroup(playlistId, group))
             .map { rows -> rows.map { it.toModel() } }.flowOn(Dispatchers.Default)
+
+    override fun observeChannelItems(playlistId: Long, group: String?): Flow<List<ChannelListItem>> =
+        (if (group == null) dao.observeListItems(playlistId) else dao.observeListItemsByGroup(playlistId, group))
+            .map { rows -> rows.map { it.toListItem() } }.flowOn(Dispatchers.Default)
+
+    override fun observeFirstChannels(playlistId: Long, limit: Int): Flow<List<Channel>> =
+        dao.observeFirst(playlistId, limit.coerceAtLeast(0))
+            .map { rows -> rows.map { it.toModel() } }.flowOn(Dispatchers.Default)
+
+    /** Playlist order within each chunk; all channels sharing one EPG id land in the same chunk. */
+    override suspend fun findByEpgIds(playlistId: Long, epgIds: List<String>): List<Channel> =
+        withContext(Dispatchers.IO) {
+            val ids = epgIds.filter { it.isNotBlank() }.distinct()
+            if (ids.isEmpty()) return@withContext emptyList()
+            ids.chunked(SQL_IN_CHUNK).flatMap { chunk -> dao.findByEffectiveEpgIds(playlistId, chunk) }.map { it.toModel() }
+        }
 
     /** Results follow the order of [ids] (e.g. favourites order). */
     override fun observeChannelsByIds(ids: List<String>): Flow<List<Channel>> =

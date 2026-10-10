@@ -15,6 +15,27 @@ const val SQL_IN_CHUNK = 500
 const val INSERT_CHUNK = 500
 const val PROGRAM_BATCH = 1000
 
+/** Columns of [ChannelListRow]; names must match its constructor parameters. */
+const val CHANNEL_LIST_COLUMNS =
+    "id, playlistId, number, name, groupName, logoUrl, epgId, resolvedEpgId, manualEpgId, " +
+        "catchupType, catchupDays, isAdult"
+
+/** Room projection of `channels` for long lists (see [ChannelDao.observeListItems]). */
+data class ChannelListRow(
+    val id: String,
+    val playlistId: Long,
+    val number: Int,
+    val name: String,
+    val groupName: String,
+    val logoUrl: String?,
+    val epgId: String?,
+    val resolvedEpgId: String?,
+    val manualEpgId: String?,
+    val catchupType: String?,
+    val catchupDays: Int,
+    val isAdult: Boolean,
+)
+
 @Dao
 abstract class PlaylistDao {
     @Query("SELECT * FROM playlists ORDER BY id")
@@ -94,6 +115,30 @@ abstract class ChannelDao {
 
     @Query("SELECT * FROM channels WHERE playlistId = :playlistId AND groupName = :group ORDER BY sortIndex")
     abstract fun observeByGroup(playlistId: Long, group: String): Flow<List<ChannelEntity>>
+
+    /** Slim list rows: only the columns a list row needs (no stream, template or extras JSON). */
+    @Query("SELECT $CHANNEL_LIST_COLUMNS FROM channels WHERE playlistId = :playlistId ORDER BY sortIndex")
+    abstract fun observeListItems(playlistId: Long): Flow<List<ChannelListRow>>
+
+    @Query(
+        "SELECT $CHANNEL_LIST_COLUMNS FROM channels WHERE playlistId = :playlistId AND groupName = :group " +
+            "ORDER BY sortIndex",
+    )
+    abstract fun observeListItemsByGroup(playlistId: Long, group: String): Flow<List<ChannelListRow>>
+
+    @Query("SELECT * FROM channels WHERE playlistId = :playlistId ORDER BY sortIndex LIMIT :limit")
+    abstract fun observeFirst(playlistId: Long, limit: Int): Flow<List<ChannelEntity>>
+
+    /** Matches the effective EPG id (see `effectiveEpgId`: manual, then resolved, then tvg-id; blanks skipped). */
+    @Query(
+        "SELECT * FROM channels WHERE playlistId = :playlistId AND " +
+            "COALESCE(" +
+            "CASE WHEN TRIM(manualEpgId) <> '' THEN manualEpgId END, " +
+            "CASE WHEN TRIM(resolvedEpgId) <> '' THEN resolvedEpgId END, " +
+            "CASE WHEN TRIM(epgId) <> '' THEN epgId END" +
+            ") IN (:epgIds) ORDER BY sortIndex",
+    )
+    abstract suspend fun findByEffectiveEpgIds(playlistId: Long, epgIds: List<String>): List<ChannelEntity>
 
     @Query(
         "SELECT groupName AS name, COUNT(*) AS channelCount, MIN(sortIndex) AS firstIndex " +

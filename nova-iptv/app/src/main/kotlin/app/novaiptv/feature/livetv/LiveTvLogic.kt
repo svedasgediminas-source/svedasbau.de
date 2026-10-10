@@ -1,5 +1,6 @@
 package app.novaiptv.feature.livetv
 
+import app.novaiptv.core.domain.ChannelListItem
 import app.novaiptv.core.model.Channel
 import app.novaiptv.core.model.ChannelGroup
 import app.novaiptv.core.model.EpgProgram
@@ -32,6 +33,8 @@ fun isAdultGroupName(name: String?): Boolean {
 
 fun isAdultChannel(channel: Channel): Boolean = channel.isAdult || isAdultGroupName(channel.groupName)
 
+fun isAdultChannel(channel: ChannelListItem): Boolean = channel.isAdult || isAdultGroupName(channel.groupName)
+
 /** All, Favorites, then provider groups (adult ones removed when [hideAdult]). */
 fun buildCategories(groups: List<ChannelGroup>, hideAdult: Boolean, favoritesCount: Int): List<LiveCategory> {
     val visible = if (hideAdult) groups.filterNot { isAdultGroupName(it.name) } else groups
@@ -44,16 +47,31 @@ fun buildCategories(groups: List<ChannelGroup>, hideAdult: Boolean, favoritesCou
 }
 
 /**
- * Applies the adult filter and the quick-search [query]. A purely numeric query also matches the
- * channel number exactly.
+ * Applies the adult filter and the quick-search [query] to the slim Live TV list. A purely numeric
+ * query also matches the channel number exactly. Linear; call it off the main thread for big lists.
  */
-fun filterChannels(channels: List<Channel>, query: String, hideAdult: Boolean): List<Channel> {
+@JvmName("filterChannelItems")
+fun filterChannels(channels: List<ChannelListItem>, query: String, hideAdult: Boolean): List<ChannelListItem> =
+    filterBy(channels, query, hideAdult, { isAdultChannel(it) }, { it.name }, { it.number })
+
+/** Same rules for full channels (used by the Guide). */
+fun filterChannels(channels: List<Channel>, query: String, hideAdult: Boolean): List<Channel> =
+    filterBy(channels, query, hideAdult, { isAdultChannel(it) }, { it.name }, { it.number })
+
+private inline fun <T> filterBy(
+    channels: List<T>,
+    query: String,
+    hideAdult: Boolean,
+    isAdult: (T) -> Boolean,
+    name: (T) -> String,
+    number: (T) -> Int,
+): List<T> {
     val q = query.trim()
     if (q.isEmpty() && !hideAdult) return channels
-    val number = q.toIntOrNull()
+    val n = q.toIntOrNull()
     return channels.filter { c ->
-        (!hideAdult || !isAdultChannel(c)) &&
-            (q.isEmpty() || c.name.contains(q, ignoreCase = true) || (number != null && c.number == number))
+        (!hideAdult || !isAdult(c)) &&
+            (q.isEmpty() || name(c).contains(q, ignoreCase = true) || (n != null && number(c) == n))
     }
 }
 
@@ -64,7 +82,7 @@ fun favoriteChannelIds(favorites: List<Favorite>, playlistId: Long): List<String
         .map { it.contentId }
 
 /** Re-orders [channels] to follow [ids] (repositories may return them in any order). */
-fun orderByIds(channels: List<Channel>, ids: List<String>): List<Channel> {
+fun orderByIds(channels: List<ChannelListItem>, ids: List<String>): List<ChannelListItem> {
     val byId = channels.associateBy { it.id }
     return ids.mapNotNull { byId[it] }
 }
@@ -97,14 +115,14 @@ fun appendDigit(current: String, digit: Int, maxDigits: Int = MAX_NUMBER_DIGITS)
 }
 
 /** Index to focus when entering the list: the preferred channel if present, else 0. */
-fun initialFocusIndex(channels: List<Channel>, preferredId: String?): Int {
+fun initialFocusIndex(channels: List<ChannelListItem>, preferredId: String?): Int {
     if (preferredId == null) return 0
     val i = channels.indexOfFirst { it.id == preferredId }
     return if (i >= 0) i else 0
 }
 
 /** Neighbour to focus after [index] disappears from the list (e.g. un-favourited). */
-fun neighbourAfterRemoval(channels: List<Channel>, index: Int): String? = when {
+fun neighbourAfterRemoval(channels: List<ChannelListItem>, index: Int): String? = when {
     index + 1 < channels.size -> channels[index + 1].id
     index - 1 >= 0 -> channels[index - 1].id
     else -> null

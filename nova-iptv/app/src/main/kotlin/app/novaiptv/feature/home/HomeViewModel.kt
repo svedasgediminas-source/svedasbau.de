@@ -78,6 +78,10 @@ data class HomeUiState(
             recentChannels.isEmpty() && movies.isEmpty() && series.isEmpty() && recentlyAdded.isEmpty()
 }
 
+/** Size of the "Now on TV" rail, and how many leading channels to read when adult ones are hidden. */
+private const val NOW_ON_TV = 20
+private const val NOW_ON_TV_FETCH = 60
+
 private data class HomeContext(val playlistId: Long?, val hideAdult: Boolean, val showNumbers: Boolean)
 
 private data class ChannelsPart(
@@ -142,9 +146,15 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
             .map { favs -> favs.filter { it.playlistId == playlistId } }
             .distinctUntilChanged()
             .flatMapLatest { favs ->
-                if (favs.isNotEmpty()) flowOf(favs.take(20) to true)
-                else container.channels.observeChannels(playlistId, null).map { all ->
-                    all.asSequence().filter { !(ctx.hideAdult && it.isAdult) }.take(20).toList() to false
+                if (favs.isNotEmpty()) {
+                    flowOf(favs.take(NOW_ON_TV) to true)
+                } else {
+                    // LIMIT query: never loads the whole playlist. Over-fetch a little so hidden
+                    // adult channels do not leave the rail short.
+                    val fetch = if (ctx.hideAdult) NOW_ON_TV_FETCH else NOW_ON_TV
+                    container.channels.observeFirstChannels(playlistId, fetch).map { first ->
+                        first.asSequence().filter { !(ctx.hideAdult && it.isAdult) }.take(NOW_ON_TV).toList() to false
+                    }
                 }
             }
 

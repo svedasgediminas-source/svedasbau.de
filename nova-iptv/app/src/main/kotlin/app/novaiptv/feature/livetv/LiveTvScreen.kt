@@ -37,6 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -77,8 +78,7 @@ import app.novaiptv.core.designsystem.EmptyState
 import app.novaiptv.core.designsystem.ErrorState
 import app.novaiptv.core.designsystem.LoadingState
 import app.novaiptv.core.designsystem.NovaColors
-import app.novaiptv.core.model.CatchupCapability
-import app.novaiptv.core.model.Channel
+import app.novaiptv.core.domain.ChannelListItem
 import app.novaiptv.core.model.NowNext
 import app.novaiptv.di.LocalAppContainer
 import app.novaiptv.feature.guide.ClockFormat
@@ -236,13 +236,23 @@ fun LiveTvScreen(onPlayChannel: (channelId: String, group: String?) -> Unit) {
         }
     }
 
+    // Visible rows are looked up by index (O(visible)), never by scanning the whole list.
+    val currentChannels by rememberUpdatedState(channels)
     LaunchedEffect(listState) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo.mapNotNull { it.key as? String } }
+        snapshotFlow {
+            val all = currentChannels
+            listState.layoutInfo.visibleItemsInfo.mapNotNull { info ->
+                all.getOrNull(info.index)?.takeIf { it.id == info.key }
+            }
+        }
             .distinctUntilChanged()
             .collect { vm.onVisibleChannels(it) }
     }
 
-    val focusedChannel = channels.firstOrNull { it.id == focusedId } ?: channels.firstOrNull()
+    // Remembered: a linear lookup must not run on every recomposition (progress ticks etc.).
+    val focusedChannel = remember(channels, focusedId) {
+        channels.firstOrNull { it.id == focusedId } ?: channels.firstOrNull()
+    }
 
     Box(
         Modifier
@@ -536,7 +546,7 @@ private fun CategoryRow(
 
 @Composable
 private fun ChannelRow(
-    channel: Channel,
+    channel: ChannelListItem,
     nowNext: NowNext?,
     nowMillis: Long,
     showNumber: Boolean,
@@ -608,7 +618,7 @@ private fun ChannelRow(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false),
                     )
-                    if (channel.catchup is CatchupCapability.Supported) {
+                    if (channel.hasCatchup) {
                         Spacer(Modifier.width(6.dp))
                         Icon(
                             imageVector = Icons.Filled.History,
@@ -759,7 +769,7 @@ private fun SearchField(
 
 @Composable
 private fun DetailsPane(
-    channel: Channel?,
+    channel: ChannelListItem?,
     nowNext: NowNext?,
     nowMillis: Long,
     showNumber: Boolean,
@@ -818,11 +828,11 @@ private fun DetailsPane(
                 Icon(Icons.Filled.Star, contentDescription = null, tint = NovaColors.Favorite, modifier = Modifier.size(22.dp))
             }
         }
-        val catchup = channel.catchup
-        if (catchup is CatchupCapability.Supported && catchup.days > 0) {
+        val catchupDays = channel.catchupDays
+        if (channel.hasCatchup && catchupDays > 0) {
             Spacer(Modifier.height(4.dp))
             Text(
-                text = pluralStringResource(R.plurals.livetv_catchup_days, catchup.days, catchup.days),
+                text = pluralStringResource(R.plurals.livetv_catchup_days, catchupDays, catchupDays),
                 style = MaterialTheme.typography.labelMedium,
                 color = NovaColors.Secondary,
             )

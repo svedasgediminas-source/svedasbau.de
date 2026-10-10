@@ -4,13 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.novaiptv.core.common.AppError
 import app.novaiptv.core.common.Clock
+import app.novaiptv.core.domain.ChannelListItem
 import app.novaiptv.core.domain.ChannelRepository
 import app.novaiptv.core.domain.EpgRepository
 import app.novaiptv.core.domain.FavoritesRepository
 import app.novaiptv.core.domain.HistoryRepository
 import app.novaiptv.core.domain.PlaylistRepository
 import app.novaiptv.core.domain.PreferencesRepository
-import app.novaiptv.core.model.Channel
+import app.novaiptv.core.domain.toListItem
 import app.novaiptv.core.model.ContentType
 import app.novaiptv.core.model.NowNext
 import app.novaiptv.core.model.UserPreferences
@@ -49,8 +50,12 @@ sealed interface ChannelListState {
     data object Loading : ChannelListState
     data object NoPlaylist : ChannelListState
     data class Failed(val error: AppError) : ChannelListState
-    /** [category] is the category these channels belong to (it lags the selection by a debounce). */
-    data class Loaded(val channels: List<Channel>, val category: CategoryKey) : ChannelListState
+    /**
+     * Slim rows (no stream/extras) so 200k-channel playlists stay cheap; the full channel is
+     * loaded by id only for playback. [category] is the category these channels belong to (it
+     * lags the selection by a debounce).
+     */
+    data class Loaded(val channels: List<ChannelListItem>, val category: CategoryKey) : ChannelListState
 }
 
 data class LiveTvUiState(
@@ -61,7 +66,7 @@ data class LiveTvUiState(
     val showNumbers: Boolean = true,
     val query: String = "",
 ) {
-    val channels: List<Channel> get() = (list as? ChannelListState.Loaded)?.channels.orEmpty()
+    val channels: List<ChannelListItem> get() = (list as? ChannelListState.Loaded)?.channels.orEmpty()
 }
 
 sealed interface LiveTvEvent {
@@ -89,7 +94,8 @@ class LiveTvViewModel(
     private val retryTrigger = MutableStateFlow(0)
     private val selectedCategory = MutableStateFlow<CategoryKey>(CategoryKey.All)
     private val query = MutableStateFlow("")
-    private val visibleChannelIds = MutableStateFlow<List<String>>(emptyList())
+    /** EPG ids of the rows currently on screen. */
+    private val visibleEpgIds = MutableStateFlow<List<String>>(emptyList())
     private val _numberEntry = MutableStateFlow("")
     private val _focusedChannelId = MutableStateFlow<String?>(null)
     private val _initialChannelId = MutableStateFlow<String?>(null)
@@ -181,19 +187,16 @@ class LiveTvViewModel(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), clock.nowMillis())
 
     /**
-     * Now/next for the channels currently on screen only (keyed by EPG id). Results are merged so
-     * scrolling back does not flash empty rows; the cache is reset when it grows large.
+     * Now/next for the channels currently on screen only (keyed by EPG id), re-queried every
+     * minute so the current programme advances. Results are merged so scrolling back does not
+     * flash empty rows; the cache is reset when it grows large. Never scans the whole list.
      */
     val nowNext: StateFlow<Map<String, NowNext>> = combine(
-        visibleChannelIds.debounce(VISIBLE_DEBOUNCE_MS),
-        state.map { s -> s.channels }.distinctUntilChanged(),
+        visibleEpgIds.debounce(VISIBLE_DEBOUNCE_MS).distinctUntilChanged(),
         nowMillis.map { it / 60_000L }.distinctUntilChanged(),
-    ) { ids, list, _ ->
-        val wanted = ids.toHashSet()
-        list.asSequence().filter { it.id in wanted }.mapNotNull { it.epgId }.distinct().toList()
-    }
+    ) { ids, minute -> ids to minute }
         .distinctUntilChanged()
-        .flatMapLatest { epgIds ->
+        .flatMapLatest { (epgIds, _) ->
             if (epgIds.isEmpty()) {
                 flowOf(emptyMap())
             } else {
@@ -219,15 +222,20 @@ class LiveTvViewModel(
 
     private fun channelsFor(pid: Long?, cat: CategoryKey): Flow<ChannelListState> {
         if (pid == null) return flowOf(ChannelListState.NoPlaylist)
-        val source: Flow<List<Channel>> = when (cat) {
-            CategoryKey.All -> channels.observeChannels(pid, null)
-            is CategoryKey.Group -> channels.observeChannels(pid, cat.name)
+        val source: Flow<List<ChannelListItem>> = when (cat) {
+            CategoryKey.All -> channels.observeChannelItems(pid, null)
+            is CategoryKey.Group -> channels.observeChannelItems(pid, cat.name)
             CategoryKey.Favorites -> favoriteIdList.flatMapLatest { ids ->
-                if (ids.isEmpty()) flowOf(emptyList()) else channels.observeChannelsByIds(ids).map { orderByIds(it, ids) }
+                if (ids.isEmpty()) {
+                    flowOf(emptyList())
+                } else {
+                    // Favourites are few: full channels mapped to slim rows.
+                    channels.observeChannelsByIds(ids).map { list -> orderByIds(list.map { it.toListItem() }, ids) }
+                }
             }
         }
         return source
-            .map<List<Channel>, ChannelListState> { ChannelListState.Loaded(it, cat) }
+            .map<List<ChannelListItem>, ChannelListState> { ChannelListState.Loaded(it, cat) }
             .onStart { emit(ChannelListState.Loading) }
             .catch { e -> emit(ChannelListState.Failed(AppError.Unknown(e.message))) }
     }
@@ -248,11 +256,12 @@ class LiveTvViewModel(
         _focusedChannelId.value = channelId
     }
 
-    fun onVisibleChannels(ids: List<String>) {
-        visibleChannelIds.value = ids
+    /** Rows currently on screen; only these get now/next. */
+    fun onVisibleChannels(visible: List<ChannelListItem>) {
+        visibleEpgIds.value = visible.mapNotNull { it.epgId }.distinct()
     }
 
-    fun toggleFavorite(channel: Channel) {
+    fun toggleFavorite(channel: ChannelListItem) {
         viewModelScope.launch {
             val added = try {
                 favorites.toggle(ContentType.Channel, channel.id, channel.playlistId)

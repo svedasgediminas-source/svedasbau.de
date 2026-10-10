@@ -14,7 +14,6 @@ import app.novaiptv.core.model.Series
 import app.novaiptv.feature.movies.AdultContentFilter
 import app.novaiptv.feature.movies.activePlaylistIdFlow
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
@@ -30,7 +29,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
-import kotlinx.coroutines.withContext
 
 internal data class SearchResults(
     val query: String,
@@ -64,8 +62,6 @@ internal class SearchViewModel(
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
 
-    /** EPG id -> channel for the active playlist, built once per playlist (programme search). */
-    private var epgIndex: Pair<Long, Map<String, Channel>>? = null
     private var showingResults = false
 
     val state: StateFlow<SearchUiState> =
@@ -134,7 +130,7 @@ internal class SearchViewModel(
         val programmes = if (programs.isEmpty()) {
             emptyList()
         } else {
-            val index = channelIndex(playlistId)
+            val index = channelsForPrograms(playlistId, programs.map { it.channelEpgId })
             SearchRanking.programmeHits(programs, index, now, PROGRAMME_LIMIT)
                 .filter { !(hideAdult && it.channel.isAdult) }
         }
@@ -151,15 +147,14 @@ internal class SearchViewModel(
     }
 
     /**
-     * There is no repository lookup by EPG id, so programme hits are mapped to channels through
-     * an index of the active playlist's channels, built once and cached per playlist.
+     * EPG id -> channel for just the EPG ids of the programme hits (one targeted query, so the
+     * whole playlist is never loaded). The first channel in playlist order wins per id.
      */
-    private suspend fun channelIndex(playlistId: Long): Map<String, Channel> {
-        epgIndex?.takeIf { it.first == playlistId }?.let { return it.second }
-        val all = safe(emptyList()) { channels.observeChannels(playlistId, null).first() }
-        val index = withContext(Dispatchers.Default) { SearchRanking.indexByEpgId(all) }
-        epgIndex = playlistId to index
-        return index
+    private suspend fun channelsForPrograms(playlistId: Long, epgIds: List<String>): Map<String, Channel> {
+        val ids = epgIds.filter { it.isNotBlank() }.distinct()
+        if (ids.isEmpty()) return emptyMap()
+        val found = safe(emptyList()) { channels.findByEpgIds(playlistId, ids) }
+        return SearchRanking.indexByEpgId(found)
     }
 
     private suspend fun <T> safe(fallback: T, block: suspend () -> T): T =

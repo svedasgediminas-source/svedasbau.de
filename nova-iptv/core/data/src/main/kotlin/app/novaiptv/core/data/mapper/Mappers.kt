@@ -3,6 +3,7 @@ package app.novaiptv.core.data.mapper
 import app.novaiptv.core.data.db.ChannelEntity
 import app.novaiptv.core.data.db.ChannelEpgRow
 import app.novaiptv.core.data.db.ChannelGroupRow
+import app.novaiptv.core.data.db.ChannelListRow
 import app.novaiptv.core.data.db.EpisodeEntity
 import app.novaiptv.core.data.db.FavoriteEntity
 import app.novaiptv.core.data.db.MovieEntity
@@ -17,6 +18,7 @@ import app.novaiptv.core.data.db.WatchHistoryEntity
 import app.novaiptv.core.data.logic.MiniJson
 import app.novaiptv.core.data.logic.SearchText
 import app.novaiptv.core.data.logic.effectiveEpgId
+import app.novaiptv.core.domain.ChannelListItem
 import app.novaiptv.core.model.CatchupCapability
 import app.novaiptv.core.model.CatchupType
 import app.novaiptv.core.model.Channel
@@ -123,6 +125,22 @@ fun ChannelEntity.toModel(): Channel {
         extras = MiniJson.decode(extrasJson),
     )
 }
+
+private val CATCHUP_TYPE_NAMES: Set<String> = CatchupType.entries.mapTo(HashSet()) { it.name }
+
+/** Slim list row: no stream/extras, so no JSON decoding (cheap for 200k rows). */
+fun ChannelListRow.toListItem(): ChannelListItem = ChannelListItem(
+    id = id,
+    playlistId = playlistId,
+    number = number,
+    name = name,
+    groupName = groupName.ifEmpty { null },
+    logoUrl = logoUrl,
+    epgId = effectiveEpgId(manualEpgId, resolvedEpgId, epgId),
+    hasCatchup = catchupType != null && catchupType in CATCHUP_TYPE_NAMES,
+    catchupDays = catchupDays,
+    isAdult = isAdult,
+)
 
 /** Lightweight channel used only for EPG name matching (stream is irrelevant there). */
 fun ChannelEpgRow.toMatchChannel(): Channel = Channel(

@@ -20,6 +20,8 @@ import app.novaiptv.core.model.VodCategory
 import app.novaiptv.core.model.WatchHistory
 import app.novaiptv.core.model.XtreamCredentials
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 /** Outcome of importing or refreshing a playlist. */
 data class ImportSummary(
@@ -66,6 +68,27 @@ interface ChannelRepository {
     suspend fun adjacentChannel(current: Channel, group: String?, offset: Int): Channel?
     suspend fun findByNumber(playlistId: Long, number: Int): Channel?
     suspend fun search(playlistId: Long, query: String, limit: Int = 50): List<Channel>
+
+    /**
+     * Slim rows for big lists ([group] null = all channels), in playlist order. Implementations
+     * should select only the needed columns; this default maps full channels.
+     */
+    fun observeChannelItems(playlistId: Long, group: String?): Flow<List<ChannelListItem>> =
+        observeChannels(playlistId, group).map { list -> list.map { it.toListItem() } }
+
+    /** The first [limit] channels of the playlist in playlist order (Home rails). */
+    fun observeFirstChannels(playlistId: Long, limit: Int): Flow<List<Channel>> =
+        observeChannels(playlistId, null).map { it.take(limit.coerceAtLeast(0)) }
+
+    /**
+     * Channels of [playlistId] whose effective EPG id (manual, then resolved, then tvg-id) is in
+     * [epgIds], in playlist order.
+     */
+    suspend fun findByEpgIds(playlistId: Long, epgIds: List<String>): List<Channel> {
+        val wanted = epgIds.toHashSet()
+        if (wanted.isEmpty()) return emptyList()
+        return observeChannels(playlistId, null).first().filter { ch -> ch.epgId?.let { it in wanted } == true }
+    }
 }
 
 interface EpgRepository {
