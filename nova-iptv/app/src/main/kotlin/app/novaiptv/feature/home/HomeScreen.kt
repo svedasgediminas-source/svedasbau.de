@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -133,6 +134,12 @@ private fun HomeContent(
     // destination state, so coming back from the player keeps the restored focus instead.
     var initialFocusDone by rememberSaveable { mutableStateOf(false) }
     var heroFocused by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+    // Whenever the hero's button gains focus, show the hero fully (bring-into-view only scrolls
+    // until the button is visible, which left the hero's top under the navigation bar).
+    LaunchedEffect(heroFocused) {
+        if (heroFocused) runCatching { listState.animateScrollToItem(0) }
+    }
     LaunchedEffect(hasHero) {
         if (hasHero && !initialFocusDone) {
             // The lazy hero item is attached a frame after composition; retry briefly.
@@ -147,7 +154,8 @@ private fun HomeContent(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = NovaDimens.ScreenPadding),
+        state = listState,
+        contentPadding = PaddingValues(top = 8.dp, bottom = NovaDimens.ScreenPadding),
         verticalArrangement = Arrangement.spacedBy(NovaDimens.RailSpacing / 2),
     ) {
         val vodHero = state.hero

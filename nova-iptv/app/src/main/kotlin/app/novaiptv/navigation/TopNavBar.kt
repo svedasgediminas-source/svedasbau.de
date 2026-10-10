@@ -83,7 +83,8 @@ fun TopNavBar(
         BrandMark()
         Spacer(Modifier.width(20.dp))
         Row(
-            modifier = Modifier.weight(1f, fill = false).horizontalScroll(rememberScrollState()),
+            // Takes all free space (a second weighted spacer used to halve it and clip tabs).
+            modifier = Modifier.weight(1f).horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -98,7 +99,7 @@ fun TopNavBar(
                 }
             }
         }
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.width(12.dp))
         TopNavItems.forEachIndexed { index, item ->
             if (item.icon != null) {
                 NavPill(
