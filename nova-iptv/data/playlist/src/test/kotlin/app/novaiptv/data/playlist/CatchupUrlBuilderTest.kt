@@ -52,13 +52,19 @@ class CatchupUrlBuilderTest {
             "http://s.example.com/a",
             sup(
                 CatchupType.Default,
-                template = "http://arc.example.com/x?s=\${start}&e=\${end}&n=\${now}&t=\${timestamp}&d=\${duration}&o=\${offset}&dm={duration:60}&om={offset:60}&f={utc:Y-m-d:H-M}&g=\${start:YmdHMS}&k={unknown}&off={offset}",
+                template = "http://arc.example.com/x?s=\${start}&e=\${end}&n=\${now}&t=\${timestamp}&d=\${duration}&o=\${offset}&dm={duration:60}&om={offset:60}&f={utc:Y-m-d:H-M}&g=\${start:YmdHMS}&off={offset}",
             ),
         )
         assertEquals(
-            "http://arc.example.com/x?s=$startS&e=$endS&n=$nowS&t=$nowS&d=3600&o=7200&dm=60&om=120&f=2026-10-01:12-00&g=20261001120000&k={unknown}&off=7200",
+            "http://arc.example.com/x?s=$startS&e=$endS&n=$nowS&t=$nowS&d=3600&o=7200&dm=60&om=120&f=2026-10-01:12-00&g=20261001120000&off=7200",
             CatchupUrlBuilder.build(c, program, now),
         )
+    }
+
+    @Test
+    fun unresolvedPlaceholderYieldsNull() {
+        val c = channel("http://s.example.com/a", sup(CatchupType.Default, template = "http://arc.example.com/{catchup-id}?u={utc}"))
+        assertNull(CatchupUrlBuilder.build(c, program, now))
     }
 
     @Test
@@ -162,11 +168,11 @@ class CatchupUrlBuilderTest {
     @Test
     fun parserAndBuilderEndToEnd() {
         val text = """
-            #EXTM3U catchup="default" catchup-days="3" catchup-source="http://arc.example.com/{tvg}?utc={utc}"
+            #EXTM3U catchup="default" catchup-days="3" catchup-source="http://arc.example.com/tv?utc={utc}"
             #EXTINF:-1 tvg-id="a",A
             http://s.example.com/a.m3u8
         """.trimIndent()
         val ch = M3uParser().parse(text.byteInputStream(), 1).channels.single()
-        assertEquals("http://arc.example.com/{tvg}?utc=$startS", CatchupUrlBuilder.build(ch, program, now))
+        assertEquals("http://arc.example.com/tv?utc=$startS", CatchupUrlBuilder.build(ch, program, now))
     }
 }

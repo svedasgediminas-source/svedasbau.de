@@ -20,13 +20,14 @@ import java.time.ZonedDateTime
  * - `{offset}`, `${offset}` (seconds between start and now); `{offset:60}` divides
  * - `{Y} {m} {d} {H} {M} {S}` start date/time parts
  * - formatted times: `{utc:Y-m-d H:M:S}`, `${start:YmdHMS}`, `{end:...}`, `{now:...}` …
- * Unknown placeholders are left untouched.
+ * Unknown placeholders are left untouched; the result then fails URL validation and null is returned.
  *
  * `days == 0` means "window unknown": no window check is applied and the server decides.
  */
 object CatchupUrlBuilder {
     private const val DAY_MILLIS = 86_400_000L
     private val PLACEHOLDER = Regex("""\$?\{([A-Za-z]+)(?::([^{}]*))?\}""")
+    private val SCHEME = Regex("^[A-Za-z][A-Za-z0-9+.-]*:")
     private val XTREAM_URL = Regex("""^(https?://[^/?#]+)/(?:live/)?([^/?#]+)/([^/?#]+)/(\d+)(?:\.[A-Za-z0-9]+)?(?:[?#].*)?$""")
 
     /** Returns the archive URL for an M3U channel, or null if not supported / outside the archive window / programme not finished starting. Never invents archive support. */
@@ -55,7 +56,8 @@ object CatchupUrlBuilder {
         val offset get() = now - start
     }
 
-    private fun isAbsolute(s: String) = Regex("^[A-Za-z][A-Za-z0-9+.-]*://").containsMatchIn(s)
+    /** Any template that starts with a scheme is absolute (so `javascript:` is validated and rejected, never appended). */
+    private fun isAbsolute(s: String) = SCHEME.containsMatchIn(s)
 
     private fun appendQuery(url: String, query: String): String {
         val hash = url.indexOf('#')
