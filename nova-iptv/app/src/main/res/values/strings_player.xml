@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="player_loading">Loading…</string>
+    <string name="player_buffering">Buffering…</string>
+    <string name="player_retrying">Reconnecting… (%1$d/%2$d)</string>
+    <string name="player_error_title">Playback failed</string>
+    <string name="player_error_network">Network problem. Check your connection and try again.</string>
+    <string name="player_error_source">The stream is not available right now.</string>
+    <string name="player_error_format">This stream format is not supported.</string>
+    <string name="player_error_drm">This content is DRM-protected and cannot be played.</string>
+    <string name="player_error_decoder">This device cannot decode the stream.</string>
+    <string name="player_error_unknown">Something went wrong during playback.</string>
+    <string name="player_error_not_found">This content is no longer in your playlist.</string>
+    <string name="player_error_catchup_unavailable">This programme is not available in the archive.</string>
+    <string name="player_error_resolve">Could not open the stream.</string>
+    <string name="player_retry">Retry</string>
+    <string name="player_back">Back</string>
+    <string name="player_settings">Audio &amp; subtitles</string>
+    <string name="player_play">Play</string>
+    <string name="player_pause">Pause</string>
+    <string name="player_start_over">Start over</string>
+    <string name="player_resumed_from">Resumed from %1$s</string>
+    <string name="player_audio">Audio</string>
+    <string name="player_subtitles">Subtitles</string>
+    <string name="player_subtitles_off">Off</string>
+    <string name="player_no_tracks">No other tracks</string>
+    <string name="player_track_fallback">Track %1$d</string>
+    <string name="player_aspect_ratio">Aspect ratio</string>
+    <string name="player_aspect_fit">Fit</string>
+    <string name="player_aspect_fill">Fill width</string>
+    <string name="player_aspect_zoom">Zoom</string>
+    <string name="player_aspect_stretch">Stretch</string>
+    <string name="player_live">LIVE</string>
+    <string name="player_archive">ARCHIVE</string>
+    <string name="player_next_programme">Next: %1$s</string>
+    <string name="player_no_epg">No programme information</string>
+    <string name="player_channel_not_found">Channel %1$d not found</string>
+    <string name="player_no_more_channels">No more channels in this list</string>
+    <string name="player_ended">Playback finished</string>
+</resources>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="player_loading">Wird geladen…</string>
+    <string name="player_buffering">Puffern…</string>
+    <string name="player_retrying">Verbindung wird wiederhergestellt… (%1$d/%2$d)</string>
+    <string name="player_error_title">Wiedergabe fehlgeschlagen</string>
+    <string name="player_error_network">Netzwerkproblem. Prüfe die Verbindung und versuche es erneut.</string>
+    <string name="player_error_source">Der Stream ist derzeit nicht verfügbar.</string>
+    <string name="player_error_format">Dieses Streamformat wird nicht unterstützt.</string>
+    <string name="player_error_drm">Dieser Inhalt ist DRM-geschützt und kann nicht abgespielt werden.</string>
+    <string name="player_error_decoder">Dieses Gerät kann den Stream nicht dekodieren.</string>
+    <string name="player_error_unknown">Bei der Wiedergabe ist ein Fehler aufgetreten.</string>
+    <string name="player_error_not_found">Dieser Inhalt ist nicht mehr in deiner Playlist.</string>
+    <string name="player_error_catchup_unavailable">Diese Sendung ist im Archiv nicht verfügbar.</string>
+    <string name="player_error_resolve">Der Stream konnte nicht geöffnet werden.</string>
+    <string name="player_retry">Erneut versuchen</string>
+    <string name="player_back">Zurück</string>
+    <string name="player_settings">Audio &amp; Untertitel</string>
+    <string name="player_play">Abspielen</string>
+    <string name="player_pause">Pause</string>
+    <string name="player_start_over">Von vorne</string>
+    <string name="player_resumed_from">Fortgesetzt ab %1$s</string>
+    <string name="player_audio">Audio</string>
+    <string name="player_subtitles">Untertitel</string>
+    <string name="player_subtitles_off">Aus</string>
+    <string name="player_no_tracks">Keine weiteren Spuren</string>
+    <string name="player_track_fallback">Spur %1$d</string>
+    <string name="player_aspect_ratio">Seitenverhältnis</string>
+    <string name="player_aspect_fit">Einpassen</string>
+    <string name="player_aspect_fill">Volle Breite</string>
+    <string name="player_aspect_zoom">Zoom</string>
+    <string name="player_aspect_stretch">Strecken</string>
+    <string name="player_live">LIVE</string>
+    <string name="player_archive">ARCHIV</string>
+    <string name="player_next_programme">Danach: %1$s</string>
+    <string name="player_no_epg">Keine Programminformationen</string>
+    <string name="player_channel_not_found">Sender %1$d nicht gefunden</string>
+    <string name="player_no_more_channels">Keine weiteren Sender in dieser Liste</string>
+    <string name="player_ended">Wiedergabe beendet</string>
+</resources>

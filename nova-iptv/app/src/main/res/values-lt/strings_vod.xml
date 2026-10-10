@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vod_movies_title">Filmai</string>
+    <string name="vod_series_title">Serialai</string>
+    <string name="vod_category_all">Visi</string>
+    <string name="vod_continue_watching">Žiūrėti toliau</string>
+    <string name="vod_no_playlist_title">Grojaraščio dar nėra</string>
+    <string name="vod_no_playlist_message">Pridėkite grojaraštį nustatymuose ir pradėkite naršyti.</string>
+    <string name="vod_no_movies_title">Šiame šaltinyje filmų nėra</string>
+    <string name="vod_no_series_title">Šiame šaltinyje serialų nėra</string>
+    <string name="vod_no_vod_message">M3U grojaraščiuose dažniausiai būna tik tiesioginiai kanalai. Xtream Codes portalai siūlo ir filmus bei serialus.</string>
+    <string name="vod_empty_category">Šioje kategorijoje kol kas nieko nėra</string>
+    <string name="vod_not_found">Šis įrašas nebepasiekiamas</string>
+    <string name="vod_resume_at">Tęsti · %1$s</string>
+    <string name="vod_start_over">Žiūrėti nuo pradžių</string>
+    <string name="vod_duration_hm">%1$d val. %2$d min.</string>
+    <string name="vod_duration_m">%1$d min.</string>
+    <string name="vod_seasons">Sezonai</string>
+    <string name="vod_season_n">%1$d sezonas</string>
+    <string name="vod_no_episodes">Serijų nėra</string>
+    <string name="vod_play_episode">Žiūrėti %1$s</string>
+    <string name="vod_continue_episode">Tęsti %1$s</string>
+    <string name="vod_watch_again">Žiūrėti dar kartą %1$s</string>
+    <string name="vod_watched">Peržiūrėta</string>
+</resources>

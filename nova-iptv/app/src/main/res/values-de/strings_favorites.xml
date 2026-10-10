@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="favorites_channels">Lieblingssender</string>
+    <string name="favorites_movies">Lieblingsfilme</string>
+    <string name="favorites_series">Lieblingsserien</string>
+    <string name="favorites_recent">Zuletzt gesehen</string>
+    <string name="favorites_empty_title">Noch keine Favoriten</string>
+    <string name="favorites_empty_message">Halte OK auf einem Sender gedrückt oder nutze die Favoriten-Taste auf der Seite eines Films oder einer Serie, um ihn hier hinzuzufügen.</string>
+</resources>

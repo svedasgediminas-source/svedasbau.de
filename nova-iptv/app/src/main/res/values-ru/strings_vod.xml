@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vod_movies_title">Фильмы</string>
+    <string name="vod_series_title">Сериалы</string>
+    <string name="vod_category_all">Все</string>
+    <string name="vod_continue_watching">Продолжить просмотр</string>
+    <string name="vod_no_playlist_title">Плейлистов пока нет</string>
+    <string name="vod_no_playlist_message">Добавьте плейлист в настройках, чтобы начать просмотр.</string>
+    <string name="vod_no_movies_title">В этом источнике нет фильмов</string>
+    <string name="vod_no_series_title">В этом источнике нет сериалов</string>
+    <string name="vod_no_vod_message">M3U-плейлисты обычно содержат только телеканалы. Порталы Xtream Codes предлагают также фильмы и сериалы.</string>
+    <string name="vod_empty_category">В этой категории пока ничего нет</string>
+    <string name="vod_not_found">Этот контент больше недоступен</string>
+    <string name="vod_resume_at">Продолжить · %1$s</string>
+    <string name="vod_start_over">Смотреть сначала</string>
+    <string name="vod_duration_hm">%1$d ч %2$d мин</string>
+    <string name="vod_duration_m">%1$d мин</string>
+    <string name="vod_seasons">Сезоны</string>
+    <string name="vod_season_n">Сезон %1$d</string>
+    <string name="vod_no_episodes">Нет доступных серий</string>
+    <string name="vod_play_episode">Смотреть %1$s</string>
+    <string name="vod_continue_episode">Продолжить %1$s</string>
+    <string name="vod_watch_again">Пересмотреть %1$s</string>
+    <string name="vod_watched">Просмотрено</string>
+</resources>

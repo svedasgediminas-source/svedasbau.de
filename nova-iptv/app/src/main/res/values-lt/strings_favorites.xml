@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="favorites_channels">Mėgstami kanalai</string>
+    <string name="favorites_movies">Mėgstami filmai</string>
+    <string name="favorites_series">Mėgstami serialai</string>
+    <string name="favorites_recent">Neseniai žiūrėti</string>
+    <string name="favorites_empty_title">Mėgstamų dar nėra</string>
+    <string name="favorites_empty_message">Norėdami pridėti, ilgai palaikykite OK ant kanalo arba filmo ar serialo puslapyje paspauskite mygtuką „Į mėgstamus“.</string>
+</resources>

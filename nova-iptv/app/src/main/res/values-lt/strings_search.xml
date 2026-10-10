@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_label">Ieškoti kanalų, filmų ir serialų</string>
+    <string name="search_hint_title">Raskite, ką žiūrėti</string>
+    <string name="search_hint_message">Įveskite bent 2 simbolius. Paspauskite OK paieškos laukelyje, kad atsidarytų klaviatūra.</string>
+    <string name="search_recent">Paskutinės paieškos</string>
+    <string name="search_channels">Kanalai</string>
+    <string name="search_programmes">Per TV dabar ir vėliau</string>
+    <string name="search_movies">Filmai</string>
+    <string name="search_series">Serialai</string>
+    <string name="search_live">Tiesiogiai</string>
+    <string name="search_no_results_title">Pagal „%1$s“ nieko nerasta</string>
+    <string name="search_no_results_message">Patikrinkite rašybą arba pabandykite trumpesnį žodį.</string>
+    <string name="search_no_playlist_title">Kol kas nėra kur ieškoti</string>
+    <string name="search_no_playlist_message">Pirmiausia pridėkite grojaraštį nustatymuose.</string>
+</resources>

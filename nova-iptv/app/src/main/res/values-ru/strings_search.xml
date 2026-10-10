@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_label">Поиск каналов, фильмов и сериалов</string>
+    <string name="search_hint_title">Найдите, что посмотреть</string>
+    <string name="search_hint_message">Введите не меньше 2 символов. Нажмите OK на поле поиска, чтобы открыть клавиатуру.</string>
+    <string name="search_recent">Недавние запросы</string>
+    <string name="search_channels">Каналы</string>
+    <string name="search_programmes">Сейчас и скоро в эфире</string>
+    <string name="search_movies">Фильмы</string>
+    <string name="search_series">Сериалы</string>
+    <string name="search_live">В эфире</string>
+    <string name="search_no_results_title">По запросу «%1$s» ничего не найдено</string>
+    <string name="search_no_results_message">Проверьте написание или попробуйте более короткое слово.</string>
+    <string name="search_no_playlist_title">Пока искать негде</string>
+    <string name="search_no_playlist_message">Сначала добавьте плейлист в настройках.</string>
+</resources>

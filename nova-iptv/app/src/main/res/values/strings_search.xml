@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_label">Search channels, movies and series</string>
+    <string name="search_hint_title">Find something to watch</string>
+    <string name="search_hint_message">Type at least 2 characters. Press OK on the search field to open the keyboard.</string>
+    <string name="search_recent">Recent searches</string>
+    <string name="search_channels">Channels</string>
+    <string name="search_programmes">On TV now and later</string>
+    <string name="search_movies">Movies</string>
+    <string name="search_series">Series</string>
+    <string name="search_live">Live</string>
+    <string name="search_no_results_title">No results for “%1$s”</string>
+    <string name="search_no_results_message">Check the spelling or try a shorter word.</string>
+    <string name="search_no_playlist_title">Nothing to search yet</string>
+    <string name="search_no_playlist_message">Add a playlist in Settings first.</string>
+</resources>

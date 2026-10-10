@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="player_loading">Загрузка…</string>
+    <string name="player_buffering">Буферизация…</string>
+    <string name="player_retrying">Переподключение… (%1$d/%2$d)</string>
+    <string name="player_error_title">Ошибка воспроизведения</string>
+    <string name="player_error_network">Проблема с сетью. Проверьте подключение и повторите попытку.</string>
+    <string name="player_error_source">Поток сейчас недоступен.</string>
+    <string name="player_error_format">Этот формат потока не поддерживается.</string>
+    <string name="player_error_drm">Этот контент защищён DRM и не может быть воспроизведён.</string>
+    <string name="player_error_decoder">Устройство не может декодировать поток.</string>
+    <string name="player_error_unknown">Во время воспроизведения произошла ошибка.</string>
+    <string name="player_error_not_found">Этого контента больше нет в вашем плейлисте.</string>
+    <string name="player_error_catchup_unavailable">Эта передача недоступна в архиве.</string>
+    <string name="player_error_resolve">Не удалось открыть поток.</string>
+    <string name="player_retry">Повторить</string>
+    <string name="player_back">Назад</string>
+    <string name="player_settings">Звук и субтитры</string>
+    <string name="player_play">Воспроизвести</string>
+    <string name="player_pause">Пауза</string>
+    <string name="player_start_over">Сначала</string>
+    <string name="player_resumed_from">Продолжено с %1$s</string>
+    <string name="player_audio">Звук</string>
+    <string name="player_subtitles">Субтитры</string>
+    <string name="player_subtitles_off">Выкл.</string>
+    <string name="player_no_tracks">Других дорожек нет</string>
+    <string name="player_track_fallback">Дорожка %1$d</string>
+    <string name="player_aspect_ratio">Соотношение сторон</string>
+    <string name="player_aspect_fit">Вписать</string>
+    <string name="player_aspect_fill">По ширине</string>
+    <string name="player_aspect_zoom">Увеличить</string>
+    <string name="player_aspect_stretch">Растянуть</string>
+    <string name="player_live">ПРЯМОЙ ЭФИР</string>
+    <string name="player_archive">АРХИВ</string>
+    <string name="player_next_programme">Далее: %1$s</string>
+    <string name="player_no_epg">Нет информации о программе</string>
+    <string name="player_channel_not_found">Канал %1$d не найден</string>
+    <string name="player_no_more_channels">В этом списке больше нет каналов</string>
+    <string name="player_ended">Воспроизведение завершено</string>
+</resources>

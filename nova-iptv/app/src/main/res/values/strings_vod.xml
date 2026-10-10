@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vod_movies_title">Movies</string>
+    <string name="vod_series_title">Series</string>
+    <string name="vod_category_all">All</string>
+    <string name="vod_continue_watching">Continue watching</string>
+    <string name="vod_no_playlist_title">No playlist yet</string>
+    <string name="vod_no_playlist_message">Add a playlist in Settings to start browsing.</string>
+    <string name="vod_no_movies_title">This source has no movies</string>
+    <string name="vod_no_series_title">This source has no series</string>
+    <string name="vod_no_vod_message">M3U playlists usually contain live channels only. Xtream Codes portals also provide movies and series.</string>
+    <string name="vod_empty_category">Nothing in this category yet</string>
+    <string name="vod_not_found">This title is no longer available</string>
+    <string name="vod_resume_at">Resume · %1$s</string>
+    <string name="vod_start_over">Start over</string>
+    <string name="vod_duration_hm">%1$d h %2$d min</string>
+    <string name="vod_duration_m">%1$d min</string>
+    <string name="vod_seasons">Seasons</string>
+    <string name="vod_season_n">Season %1$d</string>
+    <string name="vod_no_episodes">No episodes available</string>
+    <string name="vod_play_episode">Play %1$s</string>
+    <string name="vod_continue_episode">Continue %1$s</string>
+    <string name="vod_watch_again">Watch again %1$s</string>
+    <string name="vod_watched">Watched</string>
+</resources>

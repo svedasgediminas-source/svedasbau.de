@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="favorites_channels">Избранные каналы</string>
+    <string name="favorites_movies">Избранные фильмы</string>
+    <string name="favorites_series">Избранные сериалы</string>
+    <string name="favorites_recent">Недавно просмотренные</string>
+    <string name="favorites_empty_title">В избранном пока пусто</string>
+    <string name="favorites_empty_message">Чтобы добавить канал, нажмите и удерживайте OK на нём. Фильмы и сериалы добавляются кнопкой «В избранное» на их странице.</string>
+</resources>

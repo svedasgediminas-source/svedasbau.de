@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="favorites_channels">Favourite channels</string>
+    <string name="favorites_movies">Favourite movies</string>
+    <string name="favorites_series">Favourite series</string>
+    <string name="favorites_recent">Recently watched</string>
+    <string name="favorites_empty_title">No favourites yet</string>
+    <string name="favorites_empty_message">Press and hold OK on a channel, or use the Favourite button on a movie or series page, to add it here.</string>
+</resources>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_label">Sender, Filme und Serien suchen</string>
+    <string name="search_hint_title">Finde etwas zum Anschauen</string>
+    <string name="search_hint_message">Gib mindestens 2 Zeichen ein. Drücke OK im Suchfeld, um die Tastatur zu öffnen.</string>
+    <string name="search_recent">Letzte Suchen</string>
+    <string name="search_channels">Sender</string>
+    <string name="search_programmes">Jetzt und demnächst im TV</string>
+    <string name="search_movies">Filme</string>
+    <string name="search_series">Serien</string>
+    <string name="search_live">Live</string>
+    <string name="search_no_results_title">Keine Ergebnisse für „%1$s“</string>
+    <string name="search_no_results_message">Prüfe die Schreibweise oder versuche ein kürzeres Wort.</string>
+    <string name="search_no_playlist_title">Noch nichts zu durchsuchen</string>
+    <string name="search_no_playlist_message">Füge zuerst in den Einstellungen eine Playlist hinzu.</string>
+</resources>
