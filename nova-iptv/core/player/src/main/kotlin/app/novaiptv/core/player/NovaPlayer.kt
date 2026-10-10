@@ -8,6 +8,7 @@ import androidx.media3.common.C
 import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.TrackGroup
 import androidx.media3.common.TrackSelectionOverride
@@ -66,6 +67,13 @@ class NovaPlayer(
     private val _subtitleTracks = MutableStateFlow<List<TrackOption>>(emptyList())
     val subtitleTracks: StateFlow<List<TrackOption>> = _subtitleTracks.asStateFlow()
 
+    /** Current playback speed; always [PlaybackSpeeds.NORMAL] for live streams. */
+    private val _speed = MutableStateFlow(PlaybackSpeeds.NORMAL)
+    val speed: StateFlow<Float> = _speed.asStateFlow()
+
+    /** Speed chosen by the user for non-live playback (kept across items of this player). */
+    private var requestedSpeed = PlaybackSpeeds.NORMAL
+
     private var isLive = false
     private var released = false
     private var retryingAttempt: Int? = null
@@ -117,6 +125,10 @@ class NovaPlayer(
         override fun onTracksChanged(tracks: Tracks) {
             updateTracks(tracks)
         }
+
+        override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
+            _speed.value = playbackParameters.speed
+        }
     }
 
     private val exoPlayer: ExoPlayer
@@ -146,7 +158,16 @@ class NovaPlayer(
     /** The underlying player, for attaching to a PlayerView. */
     val player: Player get() = exoPlayer
 
-    fun play(stream: StreamSource, startPositionMillis: Long = 0, isLive: Boolean) {
+    /**
+     * Starts [stream]. [startPositionMillis] applies to non-live streams (VOD resume, catch-up /
+     * timeshift offset). [playWhenReady] false prepares the stream paused at that position.
+     */
+    fun play(
+        stream: StreamSource,
+        startPositionMillis: Long = 0,
+        isLive: Boolean,
+        playWhenReady: Boolean = true,
+    ) {
         if (released) return
         cancelRetry()
         retryPolicy.reset()
@@ -162,8 +183,25 @@ class NovaPlayer(
         } else {
             exoPlayer.setMediaSource(mediaSource, true)
         }
+        applySpeed()
         exoPlayer.prepare()
-        exoPlayer.playWhenReady = true
+        exoPlayer.playWhenReady = playWhenReady
+    }
+
+    /**
+     * Sets the playback speed for VOD / catch-up / timeshift (snapped to [PlaybackSpeeds.OPTIONS]).
+     * Ignored while a live stream plays: the live edge always runs at normal speed.
+     */
+    fun setSpeed(speed: Float) {
+        if (released) return
+        requestedSpeed = PlaybackSpeeds.nearest(speed)
+        applySpeed()
+    }
+
+    private fun applySpeed() {
+        val effective = PlaybackSpeeds.effective(requestedSpeed, isLive)
+        if (exoPlayer.playbackParameters.speed != effective) exoPlayer.setPlaybackSpeed(effective)
+        _speed.value = effective
     }
 
     /** Stops playback and clears the media (e.g. when the requested content cannot be played). */
@@ -271,6 +309,10 @@ class NovaPlayer(
         return if (duration == C.TIME_UNSET || duration < 0) 0L else duration
     }
 
+    /**
+     * Releases the player. Only ExoPlayer.release() runs here (it hands network teardown to its
+     * own loading threads); the shared OkHttpClient is never shut down or evicted on Main.
+     */
     fun release() {
         if (released) return
         released = true
