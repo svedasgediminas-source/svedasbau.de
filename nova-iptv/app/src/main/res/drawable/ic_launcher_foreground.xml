@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nova mark: a geometric "N" with a four-point spark (the "nova"). Adaptive-icon foreground,
+     all shapes inside the 66dp safe zone. Solid fills only (gradients need API 24). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#2FE3C8" android:pathData="M33,37 L41,37 L41,73 L33,73 Z" />
+    <path android:fillColor="#2FE3C8" android:pathData="M65,37 L73,37 L73,73 L65,73 Z" />
+    <path android:fillColor="#2FE3C8" android:fillAlpha="0.85" android:pathData="M33,37 L41,37 L73,73 L65,73 Z" />
+    <path android:fillColor="#9C8CFF" android:pathData="M80,23 L81.8,29.2 L88,31 L81.8,32.8 L80,39 L78.2,32.8 L72,31 L78.2,29.2 Z" />
+</vector>

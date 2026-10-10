@@ -17,6 +17,7 @@ import app.novaiptv.feature.livetv.resolveActivePlaylistId
 import java.time.LocalDate
 import java.time.ZoneId
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -96,6 +97,8 @@ class GuideViewModel(
     private val preferences: PreferencesRepository,
     private val clock: Clock,
     private val zone: ZoneId = ZoneId.systemDefault(),
+    /** Where list filtering runs; injectable for tests. */
+    private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
     private val retryTrigger = MutableStateFlow(0)
@@ -140,7 +143,7 @@ class GuideViewModel(
                     .catch { e -> emit(GuideChannelsState.Failed(AppError.Unknown(e.message))) }
             }
         }
-        .flowOn(Dispatchers.Default)
+        .flowOn(computeDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, GuideChannelsState.Loading)
 
     private val days: Flow<List<GuideDay>> = combine(

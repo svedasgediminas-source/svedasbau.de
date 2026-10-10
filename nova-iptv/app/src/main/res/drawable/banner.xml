@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 320x180dp Android TV launcher banner: Nova mark on a deep navy field with soft aurora
+     glows and three "rails" hinting at the portal UI. No text (vectors cannot embed fonts). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+    <path android:fillColor="#0A0E16" android:pathData="M0,0 L320,0 L320,180 L0,180 Z" />
+    <!-- aurora glows -->
+    <path android:fillColor="#2FE3C8" android:fillAlpha="0.10"
+        android:pathData="M250,90 m-110,0 a110,110 0,1 1,220 0 a110,110 0,1 1,-220 0" />
+    <path android:fillColor="#9C8CFF" android:fillAlpha="0.10"
+        android:pathData="M300,10 m-70,0 a70,70 0,1 1,140 0 a70,70 0,1 1,-140 0" />
+    <path android:fillColor="#2FE3C8" android:fillAlpha="0.08"
+        android:pathData="M70,90 m-60,0 a60,60 0,1 1,120 0 a60,60 0,1 1,-120 0" />
+    <!-- mark -->
+    <path android:fillColor="#2FE3C8" android:pathData="M42,58 L54,58 L54,122 L42,122 Z" />
+    <path android:fillColor="#2FE3C8" android:pathData="M86,58 L98,58 L98,122 L86,122 Z" />
+    <path android:fillColor="#2FE3C8" android:fillAlpha="0.85" android:pathData="M42,58 L54,58 L98,122 L86,122 Z" />
+    <path android:fillColor="#9C8CFF" android:pathData="M108,36 L110.6,45.4 L120,48 L110.6,50.6 L108,60 L105.4,50.6 L96,48 L105.4,45.4 Z" />
+    <!-- rails -->
+    <path android:fillColor="#F3F6FB" android:fillAlpha="0.92"
+        android:pathData="M146,62 L262,62 Q268,62 268,68 L268,70 Q268,76 262,76 L146,76 Q140,76 140,70 L140,68 Q140,62 146,62 Z" />
+    <path android:fillColor="#AAB4C5" android:fillAlpha="0.55"
+        android:pathData="M146,86 L292,86 Q298,86 298,92 L298,92 Q298,98 292,98 L146,98 Q140,98 140,92 L140,92 Q140,86 146,86 Z" />
+    <path android:fillColor="#2FE3C8" android:fillAlpha="0.75"
+        android:pathData="M146,108 L222,108 Q228,108 228,114 L228,114 Q228,120 222,120 L146,120 Q140,120 140,114 L140,114 Q140,108 146,108 Z" />
+</vector>

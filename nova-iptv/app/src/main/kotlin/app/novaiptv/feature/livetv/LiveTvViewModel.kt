@@ -15,6 +15,7 @@ import app.novaiptv.core.model.ContentType
 import app.novaiptv.core.model.NowNext
 import app.novaiptv.core.model.UserPreferences
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -35,13 +36,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Result of loading the channel list for the selected category. */
 sealed interface ChannelListState {
@@ -81,6 +82,8 @@ class LiveTvViewModel(
     private val history: HistoryRepository,
     private val preferences: PreferencesRepository,
     private val clock: Clock,
+    /** Where list filtering runs; injectable for tests. */
+    private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
     private val retryTrigger = MutableStateFlow(0)
@@ -137,8 +140,12 @@ class LiveTvViewModel(
         query.debounce(QUERY_DEBOUNCE_MS).onStart { emit(query.value) }.distinctUntilChanged(),
         prefs.map { it.hideAdultContent }.distinctUntilChanged(),
     ) { raw, q, hideAdult ->
-        if (raw is ChannelListState.Loaded) raw.copy(channels = filterChannels(raw.channels, q, hideAdult)) else raw
-    }.flowOn(Dispatchers.Default)
+        if (raw is ChannelListState.Loaded) {
+            withContext(computeDispatcher) { raw.copy(channels = filterChannels(raw.channels, q, hideAdult)) }
+        } else {
+            raw
+        }
+    }
 
     private val categories: Flow<List<LiveCategory>> = combine(
         playlistId.flatMapLatest { pid ->
