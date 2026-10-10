@@ -67,6 +67,11 @@ class GuideLogicTest {
         assertEquals(5, maxCatchupDays(chs))
         assertEquals(0, maxCatchupDays(listOf(channel("a"))))
         assertEquals(MAX_PAST_DAYS, maxCatchupDays(listOf(channel("x", CatchupCapability.Supported(CatchupType.Default, 365)))))
+        // 14-day archives are not capped; unknown day count counts as the 14-day default.
+        assertEquals(14, maxCatchupDays(listOf(channel("y", CatchupCapability.Supported(CatchupType.Xtream, 14)))))
+        assertEquals(14, maxCatchupDays(listOf(channel("a"), channel("z", CatchupCapability.Supported(CatchupType.Default, 0)))))
+        assertTrue(MAX_PAST_DAYS >= 14)
+        assertEquals(1 + 14 + FUTURE_DAYS, buildGuideDays(at(2026, 10, 10, 12), utc, 14).size)
         assertEquals(1 + 5 + FUTURE_DAYS, buildGuideDays(at(2026, 10, 10, 12), utc, 5).size)
     }
 
@@ -196,10 +201,18 @@ class GuideLogicTest {
         assertEquals(GuideAction.PlayCatchup, decideGuideAction(archive, at(2026, 10, 8, 21), at(2026, 10, 8, 22), now))
         assertEquals(GuideAction.ArchiveExpired, decideGuideAction(archive, at(2026, 10, 6, 21), at(2026, 10, 6, 22), now))
         assertEquals(GuideAction.ArchiveUnavailable, decideGuideAction(CatchupCapability.None, at(2026, 10, 10, 18), at(2026, 10, 10, 19), now))
-        // Declared catch-up with unknown day count uses the default window (7 days).
+        // Declared catch-up with unknown day count uses the default window (14 days).
         val unknownWindow = CatchupCapability.Supported(CatchupType.Default, 0)
+        assertEquals(14, unknownWindow.windowDays)
         assertEquals(GuideAction.PlayCatchup, decideGuideAction(unknownWindow, at(2026, 10, 10, 18), at(2026, 10, 10, 19), now))
-        assertEquals(GuideAction.ArchiveExpired, decideGuideAction(unknownWindow, at(2026, 10, 2, 18), at(2026, 10, 2, 19), now))
+        assertEquals(GuideAction.PlayCatchup, decideGuideAction(unknownWindow, at(2026, 10, 2, 18), at(2026, 10, 2, 19), now))
+        assertEquals(GuideAction.PlayCatchup, decideGuideAction(unknownWindow, at(2026, 9, 26, 21), at(2026, 9, 26, 22), now))
+        assertEquals(GuideAction.ArchiveExpired, decideGuideAction(unknownWindow, at(2026, 9, 25, 18), at(2026, 9, 25, 19), now))
+        // A 14-day provider archive is fully reachable; nothing is invented for channels without catch-up.
+        val twoWeeks = CatchupCapability.Supported(CatchupType.Xtream, days = 14)
+        assertEquals(GuideAction.PlayCatchup, decideGuideAction(twoWeeks, at(2026, 9, 26, 21), at(2026, 9, 26, 22), now))
+        assertEquals(GuideAction.ArchiveExpired, decideGuideAction(twoWeeks, at(2026, 9, 26, 19), at(2026, 9, 26, 19, 30), now))
+        assertEquals(GuideAction.ArchiveUnavailable, decideGuideAction(CatchupCapability.None, at(2026, 10, 9, 18), at(2026, 10, 9, 19), now))
         // boundary: a programme that ended exactly now is past
         assertTrue(isInArchive(archive, at(2026, 10, 10, 19), now, now))
         assertFalse(isInArchive(archive, at(2026, 10, 10, 19), now + 1, now))

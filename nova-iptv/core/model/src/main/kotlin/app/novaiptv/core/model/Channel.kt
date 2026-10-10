@@ -49,13 +49,14 @@ sealed interface CatchupCapability {
     ) : CatchupCapability {
         /**
          * Archive window used for UI and URL decisions. A source can declare catch-up without a
-         * day count (days = 0); we then assume [UNKNOWN_WINDOW_DAYS] and let the server reject
-         * programmes outside its real window.
+         * day count (days = 0); we then assume [UNKNOWN_WINDOW_DAYS] (the common 14-day archive of
+         * IPTV providers) and let the server reject programmes outside its real window. Channels
+         * that declare no catch-up at all stay [None]: no archive is ever invented for them.
          */
         val windowDays: Int get() = if (days > 0) days else UNKNOWN_WINDOW_DAYS
 
         companion object {
-            const val UNKNOWN_WINDOW_DAYS = 7
+            const val UNKNOWN_WINDOW_DAYS = 14
         }
     }
 }

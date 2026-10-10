@@ -10,6 +10,8 @@ import app.novaiptv.core.data.logic.StreamFormats
 import app.novaiptv.core.data.logic.XtreamPlaceholders
 import app.novaiptv.core.data.logic.effectiveEpgId
 import app.novaiptv.core.data.logic.isStale
+import app.novaiptv.core.model.CatchupCapability
+import app.novaiptv.core.model.CatchupType
 import app.novaiptv.core.model.ContentType
 import app.novaiptv.core.model.EpgProgram
 import app.novaiptv.core.model.StreamFormat
@@ -56,7 +58,26 @@ class DataRulesTest {
         assertTrue(EpgWindow.keep(now - 3 * DAY_MILLIS, now - 2 * DAY_MILLIS, now, EpgWindow.backMillis(3)))
         assertTrue(EpgWindow.keep(now + 6 * DAY_MILLIS, now + 6 * DAY_MILLIS + 60 * min, now, back))
         assertFalse(EpgWindow.keep(now + 7 * DAY_MILLIS, now + 7 * DAY_MILLIS + 60 * min, now, back))
-        assertEquals(now - 8 * DAY_MILLIS, EpgWindow.purgeBefore(now, 7))
+        // Purge never cuts into the 14-day default archive window (unknown day counts are stored as 0).
+        assertEquals(now - 15 * DAY_MILLIS, EpgWindow.purgeBefore(now, 7))
+        assertEquals(now - 15 * DAY_MILLIS, EpgWindow.purgeBefore(now, 0))
+        assertEquals(now - 22 * DAY_MILLIS, EpgWindow.purgeBefore(now, 21))
+    }
+
+    @Test
+    fun epgWindowKeepsFourteenDaysForDeclaredArchives() {
+        assertEquals(14 * DAY_MILLIS, EpgWindow.backMillis(14))
+        assertEquals("capped", 30 * DAY_MILLIS, EpgWindow.backMillis(365))
+        assertEquals("no catch-up declared", DAY_MILLIS, EpgWindow.backMillis(false, 0))
+        assertEquals("no catch-up declared ignores days", DAY_MILLIS, EpgWindow.backMillis(false, 14))
+        assertEquals("declared, unknown days", 14 * DAY_MILLIS, EpgWindow.backMillis(true, 0))
+        assertEquals("declared, 3 days", 3 * DAY_MILLIS, EpgWindow.backMillis(true, 3))
+        assertEquals(DAY_MILLIS, EpgWindow.backMillis(CatchupCapability.None))
+        assertEquals(14 * DAY_MILLIS, EpgWindow.backMillis(CatchupCapability.Supported(CatchupType.Default, 0)))
+        assertEquals(21 * DAY_MILLIS, EpgWindow.backMillis(CatchupCapability.Supported(CatchupType.Xtream, 21)))
+        val back = EpgWindow.backMillis(true, 14)
+        assertTrue(EpgWindow.keep(now - 14 * DAY_MILLIS + min, now - 14 * DAY_MILLIS + 60 * min, now, back))
+        assertFalse(EpgWindow.keep(now - 15 * DAY_MILLIS, now - 14 * DAY_MILLIS - 1, now, back))
     }
 
     // ---- now / next ------------------------------------------------------------------------

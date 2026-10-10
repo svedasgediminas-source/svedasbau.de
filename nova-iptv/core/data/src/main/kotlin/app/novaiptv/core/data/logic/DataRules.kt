@@ -1,6 +1,7 @@
 package app.novaiptv.core.data.logic
 
 import app.novaiptv.core.domain.StreamResolver
+import app.novaiptv.core.model.CatchupCapability
 import app.novaiptv.core.model.ContentType
 import app.novaiptv.core.model.EpgProgram
 import app.novaiptv.core.model.NowNext
@@ -27,20 +28,55 @@ object CatchupWindow {
     }
 }
 
-/** Which programmes the EPG import keeps. */
+/**
+ * Which programmes the EPG import keeps.
+ *
+ * Past programmes are kept for each channel's archive window so the Guide can browse the whole
+ * archive (14+ days for providers that declare it). Channels without catch-up keep one day.
+ * Catch-up declared without a day count uses [CatchupCapability.Supported.UNKNOWN_WINDOW_DAYS].
+ */
 object EpgWindow {
     const val FORWARD_MILLIS: Long = 7 * DAY_MILLIS
     const val DEFAULT_BACK_MILLIS: Long = DAY_MILLIS
 
-    /** Look-back for a channel: one day, or the declared catch-up window if longer. */
-    fun backMillis(catchupDays: Int): Long = maxOf(DEFAULT_BACK_MILLIS, catchupDays.coerceAtLeast(0) * DAY_MILLIS)
+    /** Hard cap for the look-back, whatever a provider declares (matches the Guide's day selector cap). */
+    const val MAX_BACK_DAYS: Int = 30
+
+    /**
+     * Look-back for a channel from the raw declared day count ([catchupDays] <= 0 = none/unknown):
+     * one day, or the declared catch-up window if longer (capped at [MAX_BACK_DAYS]).
+     */
+    fun backMillis(catchupDays: Int): Long =
+        maxOf(DEFAULT_BACK_MILLIS, catchupDays.coerceIn(0, MAX_BACK_DAYS) * DAY_MILLIS)
+
+    /**
+     * Look-back when it is known whether the channel declares catch-up at all. A declared archive
+     * without a day count keeps [CatchupCapability.Supported.UNKNOWN_WINDOW_DAYS] days.
+     */
+    fun backMillis(catchupDeclared: Boolean, catchupDays: Int): Long =
+        if (!catchupDeclared) {
+            DEFAULT_BACK_MILLIS
+        } else {
+            backMillis(if (catchupDays > 0) catchupDays else CatchupCapability.Supported.UNKNOWN_WINDOW_DAYS)
+        }
+
+    /** Look-back for a channel model. */
+    fun backMillis(capability: CatchupCapability): Long = when (capability) {
+        is CatchupCapability.Supported -> backMillis(true, capability.days)
+        CatchupCapability.None -> DEFAULT_BACK_MILLIS
+    }
 
     fun keep(startMillis: Long, endMillis: Long, nowMillis: Long, backMillis: Long): Boolean =
         endMillis > nowMillis - backMillis && startMillis < nowMillis + FORWARD_MILLIS
 
-    /** Programmes ending before this are deleted after a refresh. */
+    /**
+     * Programmes ending before this are deleted after a refresh. Never purges inside the default
+     * window for declared-but-unknown archives ([CatchupCapability.Supported.UNKNOWN_WINDOW_DAYS]),
+     * because the stored max day count is 0 for those channels; the import itself still only keeps
+     * each channel's own window, so this only bounds the clean-up of orphaned rows.
+     */
     fun purgeBefore(nowMillis: Long, maxCatchupDays: Int): Long =
-        nowMillis - backMillis(maxCatchupDays) - DAY_MILLIS
+        nowMillis - maxOf(backMillis(maxCatchupDays), backMillis(true, 0)) - DAY_MILLIS
 }
 
 object NowNextSelector {

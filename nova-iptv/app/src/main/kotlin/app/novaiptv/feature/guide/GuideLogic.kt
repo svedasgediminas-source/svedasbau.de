@@ -20,7 +20,10 @@ const val MINUTE_MILLIS: Long = 60_000L
 const val SLOT_MILLIS: Long = 30 * MINUTE_MILLIS
 const val DAY_MILLIS: Long = 24 * 60 * MINUTE_MILLIS
 
-/** Upper bound for past days in the selector, whatever a provider declares. */
+/**
+ * Upper bound for past days in the selector, whatever a provider declares. Archive depth itself
+ * always comes from the provider (14-day archives are fully browsable; unknown = 14 days).
+ */
 const val MAX_PAST_DAYS: Int = 30
 const val FUTURE_DAYS: Int = 7
 
