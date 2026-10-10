@@ -17,7 +17,7 @@ Artifact **`nova-iptv-apk`** of the workflow run (Actions → run → Artifacts)
 
 Application id `app.novaiptv.tv`, version 0.1.0-mvp, minSdk 26 (Android 8.0), targetSdk 36, compileSdk 37.
 
-## AGENTS USED: 20 (+ coordinator)
+## AGENTS USED: 18 (+ coordinator)
 
 Parallel subagents with disjoint file ownership; the coordinator owned Gradle, contracts, integration and commits.
 
