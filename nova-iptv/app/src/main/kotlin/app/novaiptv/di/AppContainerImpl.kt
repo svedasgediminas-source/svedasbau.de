@@ -31,5 +31,6 @@ class AppContainerImpl(
     override val streamResolver: StreamResolver get() = graph.streamResolver
     override val catchup: CatchupResolver get() = graph.catchup
     override val clock: Clock get() = graph.clock
+    override val okHttpClient: okhttp3.OkHttpClient get() = graph.okHttpClient
     override val imports: ImportTracker by lazy { ImportTracker(appScope, graph.preferences) }
 }
