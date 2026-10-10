@@ -76,6 +76,10 @@ interface ChannelRepository {
     fun observeChannelItems(playlistId: Long, group: String?): Flow<List<ChannelListItem>> =
         observeChannels(playlistId, group).map { list -> list.map { it.toListItem() } }
 
+    /** The first [limit] slim items of one group, in playlist order (Home group rails). */
+    fun observeGroupItems(playlistId: Long, group: String, limit: Int): Flow<List<ChannelListItem>> =
+        observeChannelItems(playlistId, group).map { it.take(limit.coerceAtLeast(0)) }
+
     /** The first [limit] channels of the playlist in playlist order (Home rails). */
     fun observeFirstChannels(playlistId: Long, limit: Int): Flow<List<Channel>> =
         observeChannels(playlistId, null).map { it.take(limit.coerceAtLeast(0)) }

@@ -156,4 +156,10 @@
     <string name="playlist_xtream_offer_message">This link contains a provider login. Add it as an Xtream account instead? Your password will be stored encrypted and you also get movies and series.</string>
     <string name="playlist_xtream_offer_accept">Add as Xtream</string>
     <string name="playlist_xtream_offer_keep">Keep as M3U</string>
+    <string name="home_live_badge">LIVE</string>
+    <string name="home_watch_now">Watch now</string>
+    <string name="home_channel_number">Ch. %1$d</string>
+    <string name="home_live_no_info">No programme information</string>
+    <string name="home_live_next">Next at %1$s: %2$s</string>
+    <string name="home_group_other">Other channels</string>
 </resources>

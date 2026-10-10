@@ -155,4 +155,10 @@
     <string name="playlist_xtream_offer_message">Dieser Link enthält einen Anbieter-Login. Stattdessen als Xtream-Konto hinzufügen? Dein Passwort wird verschlüsselt gespeichert und du erhältst zusätzlich Filme und Serien.</string>
     <string name="playlist_xtream_offer_accept">Als Xtream hinzufügen</string>
     <string name="playlist_xtream_offer_keep">Als M3U behalten</string>
+    <string name="home_live_badge">LIVE</string>
+    <string name="home_watch_now">Jetzt ansehen</string>
+    <string name="home_channel_number">Kanal %1$d</string>
+    <string name="home_live_no_info">Keine Programminformationen</string>
+    <string name="home_live_next">Ab %1$s: %2$s</string>
+    <string name="home_group_other">Weitere Sender</string>
 </resources>

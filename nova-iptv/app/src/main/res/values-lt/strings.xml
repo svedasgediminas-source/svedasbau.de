@@ -155,4 +155,10 @@
     <string name="playlist_xtream_offer_message">Šioje nuorodoje yra tiekėjo prisijungimo duomenys. Pridėti ją kaip Xtream paskyrą? Slaptažodis bus saugomas užšifruotas, be to, gausite filmus ir serialus.</string>
     <string name="playlist_xtream_offer_accept">Pridėti kaip Xtream</string>
     <string name="playlist_xtream_offer_keep">Palikti M3U</string>
+    <string name="home_live_badge">TIESIOGIAI</string>
+    <string name="home_watch_now">Žiūrėti dabar</string>
+    <string name="home_channel_number">Kan. %1$d</string>
+    <string name="home_live_no_info">Nėra laidų informacijos</string>
+    <string name="home_live_next">Toliau %1$s: %2$s</string>
+    <string name="home_group_other">Kiti kanalai</string>
 </resources>

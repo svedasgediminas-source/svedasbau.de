@@ -126,6 +126,7 @@ fun NovaNavHost(onExit: () -> Unit) {
                             onOpenSeries = { id -> navController.navigate(Route.SeriesDetail(id)) },
                             onAddPlaylist = { type -> navController.navigate(Route.AddPlaylist(type)) },
                             onOpenSettings = { navController.navigateTopLevel(Route.Settings) },
+                            onOpenGuide = { navController.navigateTopLevel(Route.Guide) },
                         )
                     }
                 }

@@ -126,6 +126,12 @@ abstract class ChannelDao {
     )
     abstract fun observeListItemsByGroup(playlistId: Long, group: String): Flow<List<ChannelListRow>>
 
+    @Query(
+        "SELECT $CHANNEL_LIST_COLUMNS FROM channels WHERE playlistId = :playlistId AND groupName = :group " +
+            "ORDER BY sortIndex LIMIT :limit",
+    )
+    abstract fun observeListItemsByGroupLimited(playlistId: Long, group: String, limit: Int): Flow<List<ChannelListRow>>
+
     @Query("SELECT * FROM channels WHERE playlistId = :playlistId ORDER BY sortIndex LIMIT :limit")
     abstract fun observeFirst(playlistId: Long, limit: Int): Flow<List<ChannelEntity>>
 

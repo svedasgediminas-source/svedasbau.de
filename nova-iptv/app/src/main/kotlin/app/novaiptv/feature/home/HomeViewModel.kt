@@ -11,6 +11,8 @@ import app.novaiptv.core.model.NowNext
 import app.novaiptv.core.model.Series
 import app.novaiptv.core.model.WatchHistory
 import app.novaiptv.di.AppContainer
+import app.novaiptv.feature.livetv.isAdultChannel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -22,17 +24,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-
-/** A channel with its current/next programme for Home rails. */
-data class ChannelNow(val channel: Channel, val now: EpgProgram?, val next: EpgProgram?) {
-    fun progress(nowMillis: Long): Float? {
-        val p = now ?: return null
-        if (p.durationMillis <= 0) return null
-        return ((nowMillis - p.startMillis).toFloat() / p.durationMillis).coerceIn(0f, 1f)
-    }
-}
 
 /** Item of the mixed "Recently added" rail. */
 sealed interface AddedItem {
@@ -45,6 +39,7 @@ sealed interface AddedItem {
     }
 }
 
+/** Movie / series hero (artwork backdrop). */
 data class HomeHero(
     val source: Recommendations.Hero,
     val title: String,
@@ -55,18 +50,22 @@ data class HomeHero(
     val resumeEpisodeId: String? = null,
 )
 
+/** LIVE hero: a channel and what it airs right now ([now] null when there is no EPG for it). */
+data class LiveHero(val channel: HomeChannel, val now: EpgProgram?, val next: EpgProgram?)
+
 data class HomeUiState(
     val isLoading: Boolean = true,
     val hasPlaylists: Boolean = true,
     val failed: Boolean = false,
     val nowMillis: Long = 0L,
+    /** Movie/series hero; when null, [liveHero] is shown instead. */
     val hero: HomeHero? = null,
+    val liveHero: LiveHero? = null,
     val continueWatching: List<WatchHistory> = emptyList(),
-    val nowOnTv: List<ChannelNow> = emptyList(),
-    /** True when [nowOnTv] is built from favourites; the separate favourites rail is then skipped. */
-    val nowOnTvFromFavorites: Boolean = false,
     val favoriteChannels: List<ChannelNow> = emptyList(),
     val recentChannels: List<ChannelNow> = emptyList(),
+    val nowOnTv: List<ChannelNow> = emptyList(),
+    val groupRails: List<GroupRailUi> = emptyList(),
     val movies: List<Movie> = emptyList(),
     val series: List<Series> = emptyList(),
     val recentlyAdded: List<AddedItem> = emptyList(),
@@ -74,22 +73,24 @@ data class HomeUiState(
     val showChannelNumbers: Boolean = true,
 ) {
     val isEmpty: Boolean
-        get() = hero == null && continueWatching.isEmpty() && nowOnTv.isEmpty() && favoriteChannels.isEmpty() &&
-            recentChannels.isEmpty() && movies.isEmpty() && series.isEmpty() && recentlyAdded.isEmpty()
+        get() = hero == null && liveHero == null && continueWatching.isEmpty() && nowOnTv.isEmpty() &&
+            favoriteChannels.isEmpty() && recentChannels.isEmpty() && groupRails.isEmpty() &&
+            movies.isEmpty() && series.isEmpty() && recentlyAdded.isEmpty()
 }
 
-/** Size of the "Now on TV" rail, and how many leading channels to read when adult ones are hidden. */
-private const val NOW_ON_TV = 20
-private const val NOW_ON_TV_FETCH = 60
+/** A group rail with now/next resolved; [name] "" = ungrouped. */
+data class GroupRailUi(val name: String, val channels: List<ChannelNow>)
 
 private data class HomeContext(val playlistId: Long?, val hideAdult: Boolean, val showNumbers: Boolean)
 
 private data class ChannelsPart(
-    val nowOnTv: List<Channel>,
-    val nowOnTvFromFavorites: Boolean,
-    val favorites: List<Channel>,
-    val recent: List<Channel>,
+    val favoriteIds: List<String>,
+    /** Full channels, needed by [Recommendations.pickHero]. */
+    val favoriteChannels: List<Channel>,
+    val favorites: List<HomeChannel>,
+    val recent: List<HomeChannel>,
     val recentHistory: List<WatchHistory>,
+    val nowOnTv: List<HomeChannel>,
 )
 
 private data class VodPart(
@@ -97,6 +98,8 @@ private data class VodPart(
     val movies: List<Movie>,
     val series: List<Series>,
 )
+
+private data class Catalog(val channels: ChannelsPart, val groups: List<GroupRail>, val vod: VodPart)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModel(private val container: AppContainer) : ViewModel() {
@@ -125,14 +128,16 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
         if (ids.isEmpty()) flowOf(emptyList())
         else container.channels.observeChannelsByIds(ids).map { channels ->
             val byId = channels.associateBy { it.id }
-            ids.mapNotNull { byId[it] }.filter { !(hideAdult && it.isAdult) }
+            ids.mapNotNull { byId[it] }.filter { !(hideAdult && isAdultChannel(it)) }
         }
 
     private fun contentFlow(playlistId: Long, ctx: HomeContext): Flow<HomeUiState> {
-        val favoriteChannels: Flow<List<Channel>> = container.favorites.observeFavorites(ContentType.Channel)
+        val favoriteIds: Flow<List<String>> = container.favorites.observeFavorites(ContentType.Channel)
             .map { favs -> favs.sortedBy { it.sortOrder }.map { it.contentId } }
             .distinctUntilChanged()
-            .flatMapLatest { ids -> channelsByIds(ids, ctx.hideAdult) }
+
+        val favorites: Flow<Pair<List<String>, List<Channel>>> = favoriteIds
+            .flatMapLatest { ids -> channelsByIds(ids, ctx.hideAdult).map { ids to it } }
 
         val recentHistory: Flow<List<WatchHistory>> = container.history.observeRecentChannels(20)
 
@@ -141,27 +146,42 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
             .distinctUntilChanged()
             .flatMapLatest { ids -> channelsByIds(ids, ctx.hideAdult) }
 
-        // "Now on TV": favourites of the active playlist, otherwise its first 20 channels.
-        val nowOnTv: Flow<Pair<List<Channel>, Boolean>> = favoriteChannels
-            .map { favs -> favs.filter { it.playlistId == playlistId } }
-            .distinctUntilChanged()
-            .flatMapLatest { favs ->
-                if (favs.isNotEmpty()) {
-                    flowOf(favs.take(NOW_ON_TV) to true)
-                } else {
-                    // LIMIT query: never loads the whole playlist. Over-fetch a little so hidden
-                    // adult channels do not leave the rail short.
-                    val fetch = if (ctx.hideAdult) NOW_ON_TV_FETCH else NOW_ON_TV
-                    container.channels.observeFirstChannels(playlistId, fetch).map { first ->
-                        first.asSequence().filter { !(ctx.hideAdult && it.isAdult) }.take(NOW_ON_TV).toList() to false
-                    }
-                }
-            }
+        // LIMIT query: never loads the whole playlist. Over-fetch a little so hidden adult channels
+        // do not leave the rail short.
+        val nowOnTv: Flow<List<HomeChannel>> = container.channels
+            .observeFirstChannels(playlistId, if (ctx.hideAdult) HomeLogic.NOW_ON_TV_FETCH else HomeLogic.NOW_ON_TV)
+            .map { first -> HomeLogic.visibleChannels(first, ctx.hideAdult, HomeLogic.NOW_ON_TV) }
 
         val channelsPart: Flow<ChannelsPart> =
-            combine(nowOnTv, favoriteChannels, recentChannels, recentHistory) { now, favs, recent, history ->
-                ChannelsPart(now.first, now.second, favs, recent, history)
+            combine(favorites, recentChannels, recentHistory, nowOnTv) { favs, recent, history, now ->
+                ChannelsPart(
+                    favoriteIds = favs.first,
+                    favoriteChannels = favs.second,
+                    favorites = favs.second.map { it.toHomeChannel() },
+                    recent = recent.map { it.toHomeChannel() },
+                    recentHistory = history,
+                    nowOnTv = now,
+                )
             }
+
+        // One flow per selected group (at most MAX_GROUP_RAILS), never one per card.
+        val groupRails: Flow<List<GroupRail>> = container.channels.observeGroups(playlistId)
+            .map { groups -> HomeLogic.selectGroups(groups, ctx.hideAdult).map { it.name } }
+            .distinctUntilChanged()
+            .flatMapLatest { names ->
+                if (names.isEmpty()) {
+                    flowOf(emptyList())
+                } else {
+                    combine(
+                        names.map { name ->
+                            container.channels.observeGroupItems(playlistId, name, limit = 60) // headroom for the adult filter
+                                .map { items -> GroupRail(name, HomeLogic.capGroupRail(items, ctx.hideAdult)) }
+                                .distinctUntilChanged()
+                        },
+                    ) { rails -> rails.filter { it.channels.isNotEmpty() } }
+                }
+            }
+            .catch { emit(emptyList()) }
 
         val vodPart: Flow<VodPart> = combine(
             container.history.observeContinueWatching(20),
@@ -171,40 +191,57 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
             VodPart(cw.filter { it.contentType != ContentType.Channel && !it.isFinished }, movies, series)
         }
 
-        val epgIds: Flow<List<String>> = channelsPart
-            .map { part -> (part.nowOnTv + part.favorites + part.recent).mapNotNull { it.epgId }.distinct() }
-            .distinctUntilChanged()
+        val catalog: Flow<Catalog> = combine(channelsPart, groupRails, vodPart) { ch, groups, vod -> Catalog(ch, groups, vod) }
 
-        val nowNext: Flow<Pair<Long, Map<String, NowNext>>> = combine(epgIds, minuteTicker) { ids, now -> ids to now }
-            .flatMapLatest { (ids, now) ->
-                if (ids.isEmpty()) flowOf(now to emptyMap())
-                else container.epg.observeNowNext(ids, now).map { now to it }
+        // One batched now/next query for every channel on Home, re-run each minute (and when the
+        // catalogue changes) so programmes advance.
+        return combine(catalog, minuteTicker) { cat, now -> cat to now }
+            .flatMapLatest { (cat, now) ->
+                val ids = HomeLogic.epgIds(
+                    listOf(cat.channels.favorites, cat.channels.recent, cat.channels.nowOnTv) + cat.groups.map { it.channels },
+                )
+                val nowNext: Flow<Map<String, NowNext>> =
+                    if (ids.isEmpty()) flowOf(emptyMap())
+                    else container.epg.observeNowNext(ids, now).catch { emit(emptyMap()) }
+                nowNext.map { nn -> buildState(cat, now, nn, ctx) }
             }
-
-        return combine(channelsPart, vodPart, nowNext, container.favorites.observeFavorites(ContentType.Channel)) { ch, vod, nn, favs ->
-            buildState(ch, vod, nn.first, nn.second, favs.map { it.contentId }.toSet(), ctx.showNumbers)
-        }
+            .flowOn(Dispatchers.Default)
     }
 
-    private fun buildState(
-        ch: ChannelsPart,
-        vod: VodPart,
-        nowMillis: Long,
-        nowNext: Map<String, NowNext>,
-        favoriteIds: Set<String>,
-        showNumbers: Boolean,
-    ): HomeUiState {
-        fun Channel.withNow(): ChannelNow {
+    private fun buildState(cat: Catalog, nowMillis: Long, nowNext: Map<String, NowNext>, ctx: HomeContext): HomeUiState {
+        val ch = cat.channels
+        val vod = cat.vod
+        fun HomeChannel.withNow(): ChannelNow {
             val nn = epgId?.let { nowNext[it] }
-            return ChannelNow(this, nn?.now, nn?.next)
+            return ChannelNow(this, HomeLogic.currentProgram(nn, nowMillis), nn?.next)
         }
 
-        val hero = Recommendations.pickHero(
+        val picked = Recommendations.pickHero(
             history = vod.continueWatching + ch.recentHistory,
-            favoriteChannels = ch.favorites,
+            favoriteChannels = ch.favoriteChannels,
             recentMovies = vod.movies,
             recentSeries = vod.series,
-        )?.let { toHomeHero(it, vod.continueWatching, nowNext) }
+        )
+        // Movie/series hero only; a channel pick (or none) becomes the LIVE hero below.
+        val vodHero = picked?.let { toHomeHero(it, vod.continueWatching) }
+        // No movie/series hero (or a channel won): LIVE hero, preferring favourites, then the most
+        // watched channels, then the first channel with a programme on air.
+        val liveHero = if (vodHero != null) {
+            null
+        } else {
+            HomeLogic.pickLiveHero(
+                favorites = ch.favorites,
+                recent = ch.recent,
+                history = ch.recentHistory,
+                others = ch.nowOnTv + cat.groups.flatMap { it.channels },
+                nowNext = nowNext,
+                nowMillis = nowMillis,
+                hideAdult = ctx.hideAdult,
+            )?.let { c ->
+                val n = c.withNow()
+                LiveHero(c, n.now, n.next)
+            }
+        }
 
         val recentlyAdded = (vod.movies.map { AddedItem.MovieItem(it) } + vod.series.map { AddedItem.SeriesItem(it) })
             .filter { it.addedAtMillis > 0L }
@@ -215,25 +252,22 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
             isLoading = false,
             hasPlaylists = true,
             nowMillis = nowMillis,
-            hero = hero,
+            hero = vodHero,
+            liveHero = liveHero,
             continueWatching = vod.continueWatching,
-            nowOnTv = ch.nowOnTv.map { it.withNow() },
-            nowOnTvFromFavorites = ch.nowOnTvFromFavorites,
             favoriteChannels = ch.favorites.map { it.withNow() },
             recentChannels = ch.recent.map { it.withNow() },
+            nowOnTv = ch.nowOnTv.map { it.withNow() },
+            groupRails = cat.groups.map { g -> GroupRailUi(g.name, g.channels.map { it.withNow() }) },
             movies = vod.movies,
             series = vod.series,
             recentlyAdded = recentlyAdded,
-            favoriteChannelIds = favoriteIds,
-            showChannelNumbers = showNumbers,
+            favoriteChannelIds = ch.favoriteIds.toHashSet(),
+            showChannelNumbers = ctx.showNumbers,
         )
     }
 
-    private fun toHomeHero(
-        hero: Recommendations.Hero,
-        continueWatching: List<WatchHistory>,
-        nowNext: Map<String, NowNext>,
-    ): HomeHero = when (hero) {
+    private fun toHomeHero(hero: Recommendations.Hero, continueWatching: List<WatchHistory>): HomeHero? = when (hero) {
         is Recommendations.Hero.MovieHero -> {
             val m = hero.movie
             HomeHero(
@@ -256,16 +290,6 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
                 resumeEpisodeId = resume?.contentId,
             )
         }
-        is Recommendations.Hero.ChannelHero -> {
-            val c = hero.channel
-            val nn = c.epgId?.let { nowNext[it] }
-            HomeHero(
-                source = hero,
-                title = c.name,
-                description = nn?.now?.let { listOfNotNull(it.title, it.description).joinToString("\n") },
-                imageUrl = c.logoUrl,
-                meta = c.groupName,
-            )
-        }
+        is Recommendations.Hero.ChannelHero -> null
     }
 }

@@ -81,10 +81,10 @@ fun TopNavBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         BrandMark()
-        Spacer(Modifier.width(28.dp))
+        Spacer(Modifier.width(20.dp))
         Row(
             modifier = Modifier.weight(1f, fill = false).horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             TopNavItems.forEachIndexed { index, item ->
@@ -110,7 +110,7 @@ fun TopNavBar(
                 Spacer(Modifier.width(6.dp))
             }
         }
-        Spacer(Modifier.width(16.dp))
+        Spacer(Modifier.width(10.dp))
         Clock()
     }
 }
@@ -127,8 +127,6 @@ private fun BrandMark() {
         ) {
             Text("N", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black), color = NovaColors.OnAccent)
         }
-        Spacer(Modifier.width(10.dp))
-        Text("Nova", style = MaterialTheme.typography.titleLarge, color = NovaColors.TextPrimary)
     }
 }
 
@@ -151,7 +149,7 @@ private fun NavPill(label: String, icon: ImageVector?, selected: Boolean, onClic
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.06f),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = if (icon != null && !focused) 12.dp else 18.dp).align(Alignment.Center),
+            modifier = Modifier.padding(horizontal = if (icon != null && !focused) 12.dp else 14.dp).align(Alignment.Center),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (icon != null) {
