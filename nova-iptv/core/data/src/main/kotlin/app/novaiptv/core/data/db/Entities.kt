@@ -297,6 +297,7 @@ data class ChannelEpgRow(
     val epgId: String?,
     val manualEpgId: String?,
     val resolvedEpgId: String?,
+    val catchupType: String?,
     val catchupDays: Int,
     val extrasJson: String?,
 )

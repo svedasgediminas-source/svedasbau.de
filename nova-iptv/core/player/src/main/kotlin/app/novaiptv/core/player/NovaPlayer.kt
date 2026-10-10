@@ -301,6 +301,9 @@ class NovaPlayer(
             .build()
     }
 
+    /** True when the current item supports seeking (VOD, archive; not most live streams). */
+    fun isSeekable(): Boolean = !released && exoPlayer.isCurrentMediaItemSeekable
+
     fun currentPositionMillis(): Long = if (released) 0L else exoPlayer.currentPosition.coerceAtLeast(0L)
 
     fun durationMillis(): Long {

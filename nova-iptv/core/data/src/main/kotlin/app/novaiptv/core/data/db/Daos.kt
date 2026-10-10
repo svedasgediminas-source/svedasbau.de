@@ -195,7 +195,7 @@ abstract class ChannelDao {
     abstract suspend fun groupCount(playlistId: Long): Int
 
     @Query(
-        "SELECT id, playlistId, name, epgId, manualEpgId, resolvedEpgId, catchupDays, extrasJson " +
+        "SELECT id, playlistId, name, epgId, manualEpgId, resolvedEpgId, catchupType, catchupDays, extrasJson " +
             "FROM channels WHERE playlistId = :playlistId",
     )
     abstract suspend fun epgRows(playlistId: Long): List<ChannelEpgRow>

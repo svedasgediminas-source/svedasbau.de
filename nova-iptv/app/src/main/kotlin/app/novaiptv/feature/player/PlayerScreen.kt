@@ -41,8 +41,6 @@ import app.novaiptv.di.LocalAppContainer
 import kotlinx.coroutines.delay
 
 private const val OVERLAY_TIMEOUT_MS = 5_000L
-private const val SEEK_STEP_MS = 10_000L
-private const val FAST_SEEK_STEP_MS = 30_000L
 
 /** Overlay level: [Info] is passive (title/EPG/time bar), [Controls] adds focusable buttons. */
 internal enum class OverlayMode { Hidden, Info, Controls }
@@ -50,21 +48,30 @@ internal enum class OverlayMode { Hidden, Info, Controls }
 /**
  * Full-screen player for live channels, catch-up, movies and episodes.
  *
- * Remote keys: UP/DOWN and CH+/CH- switch channel (live), LEFT/RIGHT seek ±10 s (VOD/catch-up),
- * FF/REW ±30 s, OK toggles pause (VOD) or shows the controls, long-press OK / MENU opens the
- * audio/subtitle/aspect panel, digits jump to a channel number, BACK closes panels then exits.
+ * Remote keys: UP/DOWN and CH+/CH- switch channel (live/timeshift), LEFT/RIGHT seek ±10 s and
+ * FF/REW ±30 s (VOD/catch-up/timeshift; holding accelerates to 30 s / 60 s / 5 min, the seek is
+ * committed after release), OK toggles pause (VOD/archive) or shows the controls, long-press OK /
+ * MENU opens the settings panel (audio, subtitles, speed, aspect), digits jump to a channel number,
+ * BACK closes panels then exits.
+ *
+ * Live channels that declare catch-up can be rewound: LEFT / REW step back into the archive,
+ * PAUSE + PLAY later continues from the paused moment, RIGHT past the live edge or "Back to live"
+ * returns to live, "Restart" plays the current programme from its start. Channels without
+ * catch-up get no fake timeshift (LEFT just shows the info bar, PAUSE pauses the live player).
  */
 @Composable
 fun PlayerScreen(args: PlayerArgs, onBack: () -> Unit) {
     val container = LocalAppContainer.current
     val appContext = LocalContext.current.applicationContext
     val viewModel: PlayerViewModel = viewModel(key = "player:$args") {
+        // Uses the app's shared OkHttpClient (container.okHttpClient); nothing is shut down on exit.
         PlayerViewModel(args, PlayerDependencies.from(container), appContext)
     }
     val ui by viewModel.uiState.collectAsStateWithLifecycle()
     val playback by viewModel.playbackState.collectAsStateWithLifecycle()
     val audioTracks by viewModel.audioTracks.collectAsStateWithLifecycle()
     val subtitleTracks by viewModel.subtitleTracks.collectAsStateWithLifecycle()
+    val speed by viewModel.speed.collectAsStateWithLifecycle()
 
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) { viewModel.onStop() }
     LifecycleEventEffect(Lifecycle.Event.ON_START) { viewModel.onStart() }
@@ -82,7 +89,8 @@ fun PlayerScreen(args: PlayerArgs, onBack: () -> Unit) {
 
     val hasError = ui.contentError != null || playback is PlaybackState.Error
     val isPaused = playback is PlaybackState.Paused
-    val keepOverlay = panelOpen || hasError || isPaused || ui.loading || playback is PlaybackState.Ended
+    val keepOverlay = panelOpen || hasError || isPaused || ui.loading || playback is PlaybackState.Ended ||
+        ui.seekPreview != null
 
     fun show(mode: OverlayMode) {
         if (mode.ordinal > overlay.ordinal || mode == OverlayMode.Controls) overlay = mode
@@ -142,9 +150,15 @@ fun PlayerScreen(args: PlayerArgs, onBack: () -> Unit) {
             return true
         }
 
+        // Release of a held seek key: commit the pending seek shortly.
+        if (up && viewModel.isSeeking && code.isSeekKey()) {
+            viewModel.onSeekKeyUp()
+            return true
+        }
+
         val digit = code.digitOrNull()
         if (digit != null) {
-            if (!ui.isLive) return false
+            if (!ui.isChannel) return false
             if (down) viewModel.onDigit(digit)
             show(OverlayMode.Info)
             return true
@@ -173,16 +187,18 @@ fun PlayerScreen(args: PlayerArgs, onBack: () -> Unit) {
                 return true
             }
             AndroidKeyEvent.KEYCODE_MEDIA_FAST_FORWARD, AndroidKeyEvent.KEYCODE_MEDIA_REWIND -> {
-                if (ui.isLive) return false
-                if (down) {
-                    val step = if (code == AndroidKeyEvent.KEYCODE_MEDIA_FAST_FORWARD) FAST_SEEK_STEP_MS else -FAST_SEEK_STEP_MS
-                    viewModel.seekBy(step)
+                // Live without catch-up: nothing to rewind into (no fake timeshift).
+                if (ui.isLive && !ui.canTimeshift) return false
+                if (down && !hasError) {
+                    val direction = if (code == AndroidKeyEvent.KEYCODE_MEDIA_FAST_FORWARD) 1 else -1
+                    viewModel.onSeekKey(direction, media = true, repeatCount = repeat, eventTimeMillis = event.nativeKeyEvent.eventTime)
                     show(OverlayMode.Info)
                 }
+                if (up) viewModel.onSeekKeyUp()
                 return true
             }
             AndroidKeyEvent.KEYCODE_CHANNEL_UP, AndroidKeyEvent.KEYCODE_CHANNEL_DOWN -> {
-                if (!ui.isLive) return false
+                if (!ui.isChannel) return false
                 if (down && repeat == 0) {
                     viewModel.switchChannel(if (code == AndroidKeyEvent.KEYCODE_CHANNEL_UP) 1 else -1)
                     panelOpen = false
@@ -207,7 +223,7 @@ fun PlayerScreen(args: PlayerArgs, onBack: () -> Unit) {
         when (code) {
             AndroidKeyEvent.KEYCODE_DPAD_UP, AndroidKeyEvent.KEYCODE_DPAD_DOWN -> {
                 if (down && repeat == 0) {
-                    if (ui.isLive) {
+                    if (ui.isChannel) {
                         viewModel.switchChannel(if (code == AndroidKeyEvent.KEYCODE_DPAD_UP) 1 else -1)
                         overlay = OverlayMode.Info
                         interaction++
@@ -219,13 +235,13 @@ fun PlayerScreen(args: PlayerArgs, onBack: () -> Unit) {
             }
             AndroidKeyEvent.KEYCODE_DPAD_LEFT, AndroidKeyEvent.KEYCODE_DPAD_RIGHT -> {
                 if (down) {
-                    if (ui.isLive) {
-                        show(OverlayMode.Info)
-                    } else {
-                        viewModel.seekBy(if (code == AndroidKeyEvent.KEYCODE_DPAD_RIGHT) SEEK_STEP_MS else -SEEK_STEP_MS)
-                        show(OverlayMode.Info)
-                    }
+                    // VOD/catch-up/timeshift seek; live catch-up channels rewind into the archive with LEFT.
+                    // Returns false (nothing to do) e.g. RIGHT on the live edge: just show the info bar.
+                    val direction = if (code == AndroidKeyEvent.KEYCODE_DPAD_RIGHT) 1 else -1
+                    viewModel.onSeekKey(direction, media = false, repeatCount = repeat, eventTimeMillis = event.nativeKeyEvent.eventTime)
+                    show(OverlayMode.Info)
                 }
+                if (up) viewModel.onSeekKeyUp()
                 return true
             }
         }
@@ -259,11 +275,15 @@ fun PlayerScreen(args: PlayerArgs, onBack: () -> Unit) {
         PlayerOverlay(
             ui = ui,
             playback = playback,
+            speed = speed,
             mode = overlay,
             controlsFocus = controlsFocus,
             errorFocus = errorFocus,
             onTogglePlay = { viewModel.togglePlayPause(); interaction++ },
             onStartOver = { viewModel.startOver(); interaction++ },
+            onPlay = { viewModel.play(); interaction++ },
+            onRestartProgramme = { viewModel.restartProgramme(); interaction++ },
+            onBackToLive = { viewModel.backToLive(); overlay = OverlayMode.Info; interaction++ },
             onOpenPanel = { panelOpen = true },
             onRetry = { viewModel.retry(); overlay = OverlayMode.Info },
             onBack = onBack,
@@ -274,10 +294,12 @@ fun PlayerScreen(args: PlayerArgs, onBack: () -> Unit) {
                 audioTracks = audioTracks,
                 subtitleTracks = subtitleTracks,
                 aspectRatio = ui.aspectRatio,
+                speed = if (ui.speedAdjustable) speed else null,
                 firstItemFocus = panelFocus,
                 onSelectAudio = { viewModel.selectAudio(it) },
                 onSelectSubtitle = { viewModel.selectSubtitle(it) },
                 onSelectAspect = { viewModel.setAspectRatio(it) },
+                onSelectSpeed = { viewModel.setSpeed(it) },
             )
         }
     }
@@ -328,6 +350,12 @@ private fun Int.isSelectKey(): Boolean =
     this == AndroidKeyEvent.KEYCODE_DPAD_CENTER ||
         this == AndroidKeyEvent.KEYCODE_ENTER ||
         this == AndroidKeyEvent.KEYCODE_NUMPAD_ENTER
+
+private fun Int.isSeekKey(): Boolean =
+    this == AndroidKeyEvent.KEYCODE_DPAD_LEFT ||
+        this == AndroidKeyEvent.KEYCODE_DPAD_RIGHT ||
+        this == AndroidKeyEvent.KEYCODE_MEDIA_REWIND ||
+        this == AndroidKeyEvent.KEYCODE_MEDIA_FAST_FORWARD
 
 private fun Int.digitOrNull(): Int? = when (this) {
     in AndroidKeyEvent.KEYCODE_0..AndroidKeyEvent.KEYCODE_9 -> this - AndroidKeyEvent.KEYCODE_0

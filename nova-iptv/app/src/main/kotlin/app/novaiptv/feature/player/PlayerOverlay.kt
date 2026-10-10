@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -61,6 +62,10 @@ import app.novaiptv.core.model.EpgProgram
 import app.novaiptv.core.model.PlaybackErrorKind
 import app.novaiptv.core.model.PlaybackState
 import app.novaiptv.core.model.TrackOption
+import app.novaiptv.core.player.LiveTimeshift
+import app.novaiptv.core.player.PlaybackSpeeds
+import app.novaiptv.core.player.SeekAccelerator
+import java.text.DecimalFormatSymbols
 import kotlinx.coroutines.delay
 import java.util.Date
 
@@ -68,11 +73,15 @@ import java.util.Date
 internal fun PlayerOverlay(
     ui: PlayerUiState,
     playback: PlaybackState,
+    speed: Float,
     mode: OverlayMode,
     controlsFocus: FocusRequester,
     errorFocus: FocusRequester,
     onTogglePlay: () -> Unit,
     onStartOver: () -> Unit,
+    onPlay: () -> Unit,
+    onRestartProgramme: () -> Unit,
+    onBackToLive: () -> Unit,
     onOpenPanel: () -> Unit,
     onRetry: () -> Unit,
     onBack: () -> Unit,
@@ -123,14 +132,24 @@ internal fun PlayerOverlay(
             InfoBar(
                 ui = ui,
                 playback = playback,
+                speed = speed,
                 positionMillis = positionMillis,
                 durationMillis = durationMillis,
                 showControls = mode == OverlayMode.Controls,
                 controlsFocus = controlsFocus,
                 onTogglePlay = onTogglePlay,
                 onStartOver = onStartOver,
+                onPlay = onPlay,
+                onRestartProgramme = onRestartProgramme,
+                onBackToLive = onBackToLive,
                 onOpenPanel = onOpenPanel,
             )
+        }
+
+        // Pending accelerated seek (committed when the key is released).
+        val preview = ui.seekPreview
+        if (preview != null && errorText == null) {
+            SeekPreviewBox(preview, modifier = Modifier.align(Alignment.TopCenter).padding(top = 96.dp))
         }
 
         if (errorText != null) {
@@ -168,6 +187,7 @@ internal fun PlayerOverlay(
             val text = when (notice) {
                 is PlayerNotice.ChannelNotFound -> stringResource(R.string.player_channel_not_found, notice.number)
                 PlayerNotice.NoMoreChannels -> stringResource(R.string.player_no_more_channels)
+                PlayerNotice.TimeshiftUnavailable -> stringResource(R.string.player_timeshift_unavailable)
             }
             Box(
                 modifier = Modifier
@@ -187,12 +207,16 @@ internal fun PlayerOverlay(
 private fun InfoBar(
     ui: PlayerUiState,
     playback: PlaybackState,
+    speed: Float,
     positionMillis: Long,
     durationMillis: Long,
     showControls: Boolean,
     controlsFocus: FocusRequester,
     onTogglePlay: () -> Unit,
     onStartOver: () -> Unit,
+    onPlay: () -> Unit,
+    onRestartProgramme: () -> Unit,
+    onBackToLive: () -> Unit,
     onOpenPanel: () -> Unit,
 ) {
     Column(
@@ -203,14 +227,14 @@ private fun InfoBar(
     ) {
         Spacer(Modifier.height(48.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if (ui.isLive || ui.isCatchup) {
+            if (ui.isChannel || ui.isCatchup) {
                 ChannelLogo(url = ui.logoUrl, name = ui.title, modifier = Modifier.size(width = 96.dp, height = 64.dp))
                 Spacer(Modifier.width(20.dp))
             }
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     val number = ui.channelNumber
-                    if (number != null && ui.showChannelNumbers && (ui.isLive || ui.isCatchup)) {
+                    if (number != null && ui.showChannelNumbers && (ui.isChannel || ui.isCatchup)) {
                         Text(
                             text = number.toString(),
                             style = MaterialTheme.typography.titleLarge,
@@ -226,12 +250,24 @@ private fun InfoBar(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false),
                     )
-                    if (ui.isLive || ui.isCatchup) {
+                    val pausedAt = ui.pausedLiveAtMillis
+                    val program = ui.currentProgram
+                    if (ui.isTimeshift && program != null) {
+                        Spacer(Modifier.width(12.dp))
+                        BehindLiveBadge { now -> LiveTimeshift.behindLiveMillis(now, program.startMillis, positionMillis) }
+                    } else if (ui.isLive && pausedAt != null) {
+                        Spacer(Modifier.width(12.dp))
+                        BehindLiveBadge { now -> (now - pausedAt).coerceAtLeast(0L) }
+                    } else if (ui.isLive || ui.isCatchup) {
                         Spacer(Modifier.width(12.dp))
                         Badge(
                             text = stringResource(if (ui.isLive) R.string.player_live else R.string.player_archive),
                             color = if (ui.isLive) NovaColors.Live else NovaColors.Secondary,
                         )
+                    }
+                    if (!ui.isLive && !PlaybackSpeeds.isNormal(speed)) {
+                        Spacer(Modifier.width(12.dp))
+                        Badge(text = speedLabel(speed), color = NovaColors.AccentDim)
                     }
                 }
                 val subtitle = ui.subtitle
@@ -250,6 +286,8 @@ private fun InfoBar(
 
         if (ui.isLive) {
             LiveProgramme(current = ui.currentProgram, next = ui.nextProgram)
+        } else if (ui.isTimeshift && ui.currentProgram != null) {
+            TimeshiftProgramme(program = ui.currentProgram, positionMillis = positionMillis)
         } else if (!ui.loading) {
             TimeBar(positionMillis = positionMillis, durationMillis = durationMillis)
             val resumed = ui.resumedFromMillis
@@ -278,13 +316,37 @@ private fun InfoBar(
                         primary = true,
                         modifier = Modifier.focusRequester(controlsFocus),
                     )
-                    NovaButton(text = stringResource(R.string.player_start_over), onClick = onStartOver)
+                    if (ui.isTimeshift) {
+                        NovaButton(text = stringResource(R.string.player_back_to_live), onClick = onBackToLive)
+                        NovaButton(text = stringResource(R.string.player_restart_programme), onClick = onRestartProgramme)
+                    } else {
+                        NovaButton(text = stringResource(R.string.player_start_over), onClick = onStartOver)
+                    }
                     NovaButton(text = stringResource(R.string.player_settings), onClick = onOpenPanel)
                 } else {
+                    // The first button always carries the focus requester.
+                    val pausedLive = ui.pausedLiveAtMillis != null
+                    val canRestart = ui.canTimeshift && ui.currentProgram != null
+                    if (pausedLive) {
+                        NovaButton(
+                            text = stringResource(R.string.player_play),
+                            onClick = onPlay,
+                            primary = true,
+                            modifier = Modifier.focusRequester(controlsFocus),
+                        )
+                        NovaButton(text = stringResource(R.string.player_back_to_live), onClick = onBackToLive)
+                    }
+                    if (canRestart) {
+                        NovaButton(
+                            text = stringResource(R.string.player_restart_programme),
+                            onClick = onRestartProgramme,
+                            modifier = if (!pausedLive) Modifier.focusRequester(controlsFocus) else Modifier,
+                        )
+                    }
                     NovaButton(
                         text = stringResource(R.string.player_settings),
                         onClick = onOpenPanel,
-                        modifier = Modifier.focusRequester(controlsFocus),
+                        modifier = if (!pausedLive && !canRestart) Modifier.focusRequester(controlsFocus) else Modifier,
                     )
                 }
             }
@@ -334,6 +396,85 @@ private fun LiveProgramme(current: EpgProgram?, next: EpgProgram?) {
             overflow = TextOverflow.Ellipsis,
         )
     }
+}
+
+/** Timeshift: archived programme with the position inside it (time bar over the programme length). */
+@Composable
+private fun TimeshiftProgramme(program: EpgProgram, positionMillis: Long) {
+    val context = LocalContext.current
+    val timeFormat = remember(context) { android.text.format.DateFormat.getTimeFormat(context) }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = program.title,
+            style = MaterialTheme.typography.titleMedium,
+            color = NovaColors.TextPrimary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f, fill = false),
+        )
+        Spacer(Modifier.width(16.dp))
+        Text(
+            text = timeFormat.format(Date(program.startMillis)) + " – " + timeFormat.format(Date(program.endMillis)),
+            style = MaterialTheme.typography.bodyMedium,
+            color = NovaColors.TextSecondary,
+        )
+    }
+    Spacer(Modifier.height(8.dp))
+    TimeBar(positionMillis = positionMillis, durationMillis = program.durationMillis.coerceAtLeast(0L))
+}
+
+/** "-5:23 behind live", ticking every second; [behindAt] maps the wall clock to the distance. */
+@Composable
+private fun BehindLiveBadge(behindAt: (Long) -> Long) {
+    val now by produceState(System.currentTimeMillis()) {
+        while (true) {
+            value = System.currentTimeMillis()
+            delay(1_000)
+        }
+    }
+    Badge(
+        text = stringResource(R.string.player_behind_live, formatDuration(behindAt(now))),
+        color = NovaColors.Secondary,
+    )
+}
+
+@Composable
+private fun SeekPreviewBox(preview: SeekPreview, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val timeFormat = remember(context) { android.text.format.DateFormat.getTimeFormat(context) }
+    val target = when {
+        preview.toLive -> stringResource(R.string.player_live)
+        preview.wallClock -> timeFormat.format(Date(preview.targetMillis))
+        else -> formatDuration(preview.targetMillis)
+    }
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(NovaColors.Scrim)
+            .padding(horizontal = 28.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = target,
+            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+            color = NovaColors.TextPrimary,
+        )
+        Spacer(Modifier.width(16.dp))
+        Text(
+            text = SeekAccelerator.formatDelta(preview.deltaMillis),
+            style = MaterialTheme.typography.titleLarge,
+            color = NovaColors.Accent,
+        )
+    }
+}
+
+@Composable
+private fun speedLabel(speed: Float): String {
+    val context = LocalContext.current
+    val separator = remember(context) {
+        DecimalFormatSymbols.getInstance(context.resources.configuration.locales[0]).decimalSeparator
+    }
+    return PlaybackSpeeds.label(speed, separator)
 }
 
 @Composable
@@ -439,16 +580,19 @@ private fun Spinner() {
     }
 }
 
-/** Right-side panel: audio track, subtitles, aspect ratio. */
+/** Right-side panel: audio track, subtitles, playback speed (VOD/archive only), aspect ratio. */
 @Composable
 internal fun TrackPanel(
     audioTracks: List<TrackOption>,
     subtitleTracks: List<TrackOption>,
     aspectRatio: AspectRatioMode,
+    /** Current speed, or null when speed cannot be changed (live edge). */
+    speed: Float?,
     firstItemFocus: FocusRequester,
     onSelectAudio: (TrackOption) -> Unit,
     onSelectSubtitle: (TrackOption?) -> Unit,
     onSelectAspect: (AspectRatioMode) -> Unit,
+    onSelectSpeed: (Float) -> Unit,
 ) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.CenterEnd) {
         Column(
@@ -487,6 +631,18 @@ internal fun TrackPanel(
                     selected = track.selected,
                     onClick = { onSelectSubtitle(track) },
                 )
+            }
+
+            if (speed != null) {
+                Spacer(Modifier.height(12.dp))
+                SectionTitle(stringResource(R.string.player_speed))
+                PlaybackSpeeds.OPTIONS.forEach { option ->
+                    OptionButton(
+                        text = if (PlaybackSpeeds.isNormal(option)) stringResource(R.string.player_speed_normal) else speedLabel(option),
+                        selected = PlaybackSpeeds.nearest(speed) == option,
+                        onClick = { onSelectSpeed(option) },
+                    )
+                }
             }
 
             Spacer(Modifier.height(12.dp))

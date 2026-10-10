@@ -15,7 +15,7 @@
     <string name="player_error_resolve">Nepavyko atidaryti srauto.</string>
     <string name="player_retry">Bandyti dar kartą</string>
     <string name="player_back">Atgal</string>
-    <string name="player_settings">Garsas ir subtitrai</string>
+    <string name="player_settings">Nustatymai</string>
     <string name="player_play">Leisti</string>
     <string name="player_pause">Pauzė</string>
     <string name="player_start_over">Nuo pradžios</string>
@@ -37,4 +37,10 @@
     <string name="player_channel_not_found">Kanalas %1$d nerastas</string>
     <string name="player_no_more_channels">Šiame sąraše daugiau kanalų nėra</string>
     <string name="player_ended">Peržiūra baigta</string>
+    <string name="player_speed">Atkūrimo greitis</string>
+    <string name="player_speed_normal">Įprastas (1×)</string>
+    <string name="player_behind_live">−%1$s nuo tiesioginio eterio</string>
+    <string name="player_back_to_live">Grįžti į tiesioginį</string>
+    <string name="player_restart_programme">Laidą iš pradžių</string>
+    <string name="player_timeshift_unavailable">Šiai akimirkai atsukti negalima</string>
 </resources>

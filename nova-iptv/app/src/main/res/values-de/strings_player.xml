@@ -15,7 +15,7 @@
     <string name="player_error_resolve">Der Stream konnte nicht geöffnet werden.</string>
     <string name="player_retry">Erneut versuchen</string>
     <string name="player_back">Zurück</string>
-    <string name="player_settings">Audio &amp; Untertitel</string>
+    <string name="player_settings">Einstellungen</string>
     <string name="player_play">Abspielen</string>
     <string name="player_pause">Pause</string>
     <string name="player_start_over">Von vorne</string>
@@ -37,4 +37,10 @@
     <string name="player_channel_not_found">Sender %1$d nicht gefunden</string>
     <string name="player_no_more_channels">Keine weiteren Sender in dieser Liste</string>
     <string name="player_ended">Wiedergabe beendet</string>
+    <string name="player_speed">Wiedergabegeschwindigkeit</string>
+    <string name="player_speed_normal">Normal (1×)</string>
+    <string name="player_behind_live">−%1$s hinter Live</string>
+    <string name="player_back_to_live">Zurück zu Live</string>
+    <string name="player_restart_programme">Sendung von vorne</string>
+    <string name="player_timeshift_unavailable">Zurückspulen ist für diesen Zeitpunkt nicht verfügbar</string>
 </resources>

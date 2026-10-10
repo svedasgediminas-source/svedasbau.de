@@ -15,7 +15,7 @@
     <string name="player_error_resolve">Не удалось открыть поток.</string>
     <string name="player_retry">Повторить</string>
     <string name="player_back">Назад</string>
-    <string name="player_settings">Звук и субтитры</string>
+    <string name="player_settings">Настройки</string>
     <string name="player_play">Воспроизвести</string>
     <string name="player_pause">Пауза</string>
     <string name="player_start_over">Сначала</string>
@@ -37,4 +37,10 @@
     <string name="player_channel_not_found">Канал %1$d не найден</string>
     <string name="player_no_more_channels">В этом списке больше нет каналов</string>
     <string name="player_ended">Воспроизведение завершено</string>
+    <string name="player_speed">Скорость воспроизведения</string>
+    <string name="player_speed_normal">Обычная (1×)</string>
+    <string name="player_behind_live">−%1$s от прямого эфира</string>
+    <string name="player_back_to_live">Вернуться в эфир</string>
+    <string name="player_restart_programme">Передачу сначала</string>
+    <string name="player_timeshift_unavailable">Перемотка на этот момент недоступна</string>
 </resources>

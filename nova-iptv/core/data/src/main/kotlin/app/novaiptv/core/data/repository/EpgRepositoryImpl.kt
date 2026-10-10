@@ -201,22 +201,23 @@ class EpgRepositoryImpl(
         private fun buildWanted(byId: Map<String, EpgChannel>): Map<String, Long> {
             val nameIndex = EpgMatcher.buildNameIndex(byId.values)
             val wanted = HashMap<String, Long>()
-            fun want(id: String, days: Int) {
-                val back = EpgWindow.backMillis(days)
+            fun want(id: String, row: ChannelEpgRow) {
+                // Declared catch-up without a day count keeps the default archive window.
+                val back = EpgWindow.backMillis(row.catchupType != null, row.catchupDays)
                 val prev = wanted[id]
                 if (prev == null || back > prev) wanted[id] = back
             }
             for (row in rows) {
                 val manual = row.manualEpgId
                 if (manual != null) {
-                    want(manual, row.catchupDays)
+                    want(manual, row)
                     continue
                 }
                 // Feeds without <channel> elements still match on the exact tvg-id.
-                row.epgId?.let { want(it, row.catchupDays) }
+                row.epgId?.let { want(it, row) }
                 val matched = EpgMatcher.match(row.toMatchChannel(), byId, nameIndex)
                 if (matched != null) {
-                    want(matched, row.catchupDays)
+                    want(matched, row)
                     if (!resolvedUpdates.containsKey(row.id)) {
                         if (matched != row.epgId) {
                             resolvedUpdates[row.id] = matched
@@ -226,7 +227,7 @@ class EpgRepositoryImpl(
                     }
                 } else if (row.resolvedEpgId != null && byId.isNotEmpty()) {
                     // Keep serving the previous resolution's programmes from this feed, if any.
-                    want(row.resolvedEpgId, row.catchupDays)
+                    want(row.resolvedEpgId, row)
                 }
             }
             return wanted

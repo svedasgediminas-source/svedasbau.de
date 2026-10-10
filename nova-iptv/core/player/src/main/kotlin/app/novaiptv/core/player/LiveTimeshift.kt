@@ -13,8 +13,8 @@ import app.novaiptv.core.model.EpgProgram
  * convert with the programme start.
  */
 object LiveTimeshift {
-    /** A target within this distance of now counts as the live edge. */
-    const val LIVE_EDGE_MARGIN_MS: Long = 10_000L
+    /** A target within this distance of now counts as the live edge (smaller than the 10 s step back). */
+    const val LIVE_EDGE_MARGIN_MS: Long = 5_000L
 
     /** Pausing live longer than this resumes from the archive at the paused moment. */
     const val RESUME_FROM_ARCHIVE_AFTER_MS: Long = 5_000L
@@ -45,8 +45,15 @@ object LiveTimeshift {
     fun startPositionMillis(targetWallMillis: Long, programStartMillis: Long): Long =
         (targetWallMillis - programStartMillis).coerceAtLeast(0L)
 
-    /** Target when the user steps back [stepBackMillis] from live: now - stepBack. */
-    fun stepBackTarget(nowMillis: Long, stepBackMillis: Long): Long = nowMillis - stepBackMillis.coerceAtLeast(0L)
+    /**
+     * Target when the user steps back from live: now - stepBack, at least [MIN_STEP_BACK_MS] because
+     * a running programme's archive usually lags real time; a smaller step would hit the end of the
+     * archive at once and bounce back to live.
+     */
+    fun stepBackTarget(nowMillis: Long, stepBackMillis: Long): Long =
+        nowMillis - stepBackMillis.coerceAtLeast(MIN_STEP_BACK_MS)
+
+    const val MIN_STEP_BACK_MS: Long = 30_000L
 
     fun shouldResumeFromArchive(pausedAtMillis: Long, nowMillis: Long): Boolean =
         nowMillis - pausedAtMillis >= RESUME_FROM_ARCHIVE_AFTER_MS
