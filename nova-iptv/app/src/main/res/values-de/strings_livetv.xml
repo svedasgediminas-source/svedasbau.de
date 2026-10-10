@@ -14,9 +14,9 @@
     <string name="livetv_empty_message">Füge unter Einstellungen → Playlists eine Playlist hinzu, um loszulegen.</string>
     <string name="livetv_empty_category">Keine Sender in dieser Kategorie</string>
     <string name="livetv_empty_favorites_title">Keine Lieblingssender</string>
-    <string name="livetv_empty_favorites_message">Halte in der Senderliste OK gedrückt oder drücke MENU, um einen Sender zu den Favoriten hinzuzufügen.</string>
+    <string name="livetv_empty_favorites_message">Halte in der Kanalliste OK gedrückt (oder drücke MENU), um einen Kanal zu den Favoriten hinzuzufügen.</string>
     <string name="livetv_no_results">Keine Sender für „%1$s“</string>
-    <string name="livetv_hint_controls">OK: ansehen · OK halten / MENU: Favorit · 0–9: Sendernummer</string>
+    <string name="livetv_hint_controls">OK: ansehen · OK halten: Favorit · MENU: Optionen · 0–9: Kanalnummer</string>
     <string name="livetv_number_entry">Sender %1$s</string>
     <string name="livetv_number_not_found">Sender %1$d nicht gefunden</string>
     <string name="livetv_favorite_added">„%1$s“ zu den Favoriten hinzugefügt</string>
@@ -24,5 +24,23 @@
     <plurals name="livetv_catchup_days">
         <item quantity="one">Archiv: %1$d Tag</item>
         <item quantity="other">Archiv: %1$d Tage</item>
+    </plurals>
+    <!-- Manual TV guide (EPG) mapping -->
+    <string name="livetv_epgfix_action">TV-Programm korrigieren</string>
+    <string name="livetv_epgfix_action_hint">Wählen, welche Programmdaten dieser Kanal verwendet</string>
+    <string name="livetv_epgfix_title">TV-Programm für „%1$s“</string>
+    <string name="livetv_epgfix_current">Aktuelle Programm-ID: %1$s</string>
+    <string name="livetv_epgfix_current_none">Dieser Kanal hat keine Programm-ID</string>
+    <string name="livetv_epgfix_search_label">Programm-IDs suchen</string>
+    <string name="livetv_epgfix_searching">Suche…</string>
+    <string name="livetv_epgfix_no_results">Keine passenden Programm-IDs. Sie erscheinen hier, sobald das TV-Programm geladen wurde.</string>
+    <string name="livetv_epgfix_use">Diese verwenden</string>
+    <string name="livetv_epgfix_clear">Manuelle Zuordnung löschen</string>
+    <string name="livetv_epgfix_applied">„%1$s“ verwendet jetzt die Programm-ID %2$s</string>
+    <string name="livetv_epgfix_cleared">Manuelle Programmzuordnung von „%1$s“ gelöscht</string>
+    <string name="livetv_epgfix_failed">Die Programmzuordnung konnte nicht gespeichert werden</string>
+    <plurals name="livetv_epgfix_programmes">
+        <item quantity="one">%1$d Sendung</item>
+        <item quantity="other">%1$d Sendungen</item>
     </plurals>
 </resources>

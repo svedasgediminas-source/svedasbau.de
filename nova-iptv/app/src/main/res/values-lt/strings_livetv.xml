@@ -14,9 +14,9 @@
     <string name="livetv_empty_message">Pridėkite grojaraštį skiltyje Nustatymai → Grojaraščiai ir pradėkite žiūrėti.</string>
     <string name="livetv_empty_category">Šioje kategorijoje kanalų nėra</string>
     <string name="livetv_empty_favorites_title">Mėgstamų kanalų nėra</string>
-    <string name="livetv_empty_favorites_message">Kanalų sąraše palaikykite OK arba paspauskite MENU, kad pridėtumėte kanalą prie mėgstamų.</string>
+    <string name="livetv_empty_favorites_message">Kanalų sąraše palaikykite OK (arba paspauskite MENU), kad pridėtumėte kanalą prie mėgstamų.</string>
     <string name="livetv_no_results">Pagal „%1$s“ kanalų nerasta</string>
-    <string name="livetv_hint_controls">OK – žiūrėti · Palaikykite OK / MENU – mėgstami · 0–9 – kanalo numeris</string>
+    <string name="livetv_hint_controls">OK – žiūrėti · Palaikykite OK – mėgstami · MENU – parinktys · 0–9 – kanalo numeris</string>
     <string name="livetv_number_entry">Kanalas %1$s</string>
     <string name="livetv_number_not_found">Kanalas %1$d nerastas</string>
     <string name="livetv_favorite_added">„%1$s“ pridėtas prie mėgstamų</string>
@@ -26,5 +26,25 @@
         <item quantity="few">Archyvas: %1$d dienos</item>
         <item quantity="many">Archyvas: %1$d dienos</item>
         <item quantity="other">Archyvas: %1$d dienų</item>
+    </plurals>
+    <!-- Manual TV guide (EPG) mapping -->
+    <string name="livetv_epgfix_action">Taisyti TV programą</string>
+    <string name="livetv_epgfix_action_hint">Pasirinkite, kokius programos duomenis naudoja šis kanalas</string>
+    <string name="livetv_epgfix_title">„%1$s“ TV programa</string>
+    <string name="livetv_epgfix_current">Dabartinis programos ID: %1$s</string>
+    <string name="livetv_epgfix_current_none">Šis kanalas neturi programos ID</string>
+    <string name="livetv_epgfix_search_label">Ieškoti programos ID</string>
+    <string name="livetv_epgfix_searching">Ieškoma…</string>
+    <string name="livetv_epgfix_no_results">Tinkamų programos ID nerasta. Jie atsiranda, kai įkeliama TV programa.</string>
+    <string name="livetv_epgfix_use">Naudoti šį</string>
+    <string name="livetv_epgfix_clear">Išvalyti rankinį susiejimą</string>
+    <string name="livetv_epgfix_applied">„%1$s“ dabar naudoja programos ID %2$s</string>
+    <string name="livetv_epgfix_cleared">„%1$s“ rankinis programos susiejimas išvalytas</string>
+    <string name="livetv_epgfix_failed">Nepavyko išsaugoti TV programos susiejimo</string>
+    <plurals name="livetv_epgfix_programmes">
+        <item quantity="one">%1$d laida</item>
+        <item quantity="few">%1$d laidos</item>
+        <item quantity="many">%1$d laidos</item>
+        <item quantity="other">%1$d laidų</item>
     </plurals>
 </resources>

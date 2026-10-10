@@ -14,9 +14,9 @@
     <string name="livetv_empty_message">Добавьте плейлист в разделе Настройки → Плейлисты, чтобы начать просмотр.</string>
     <string name="livetv_empty_category">В этой категории нет каналов</string>
     <string name="livetv_empty_favorites_title">Нет избранных каналов</string>
-    <string name="livetv_empty_favorites_message">В списке каналов удерживайте OK или нажмите MENU, чтобы добавить канал в избранное.</string>
+    <string name="livetv_empty_favorites_message">В списке каналов удерживайте OK (или нажмите MENU), чтобы добавить канал в избранное.</string>
     <string name="livetv_no_results">По запросу «%1$s» каналы не найдены</string>
-    <string name="livetv_hint_controls">OK — смотреть · Удерживать OK / MENU — избранное · 0–9 — номер канала</string>
+    <string name="livetv_hint_controls">OK — смотреть · Удерживайте OK — избранное · MENU — параметры · 0–9 — номер канала</string>
     <string name="livetv_number_entry">Канал %1$s</string>
     <string name="livetv_number_not_found">Канал %1$d не найден</string>
     <string name="livetv_favorite_added">«%1$s» добавлен в избранное</string>
@@ -26,5 +26,25 @@
         <item quantity="few">Архив: %1$d дня</item>
         <item quantity="many">Архив: %1$d дней</item>
         <item quantity="other">Архив: %1$d дня</item>
+    </plurals>
+    <!-- Manual TV guide (EPG) mapping -->
+    <string name="livetv_epgfix_action">Исправить телепрограмму</string>
+    <string name="livetv_epgfix_action_hint">Выберите, какие данные телепрограммы использует этот канал</string>
+    <string name="livetv_epgfix_title">Телепрограмма для «%1$s»</string>
+    <string name="livetv_epgfix_current">Текущий ID программы: %1$s</string>
+    <string name="livetv_epgfix_current_none">У этого канала нет ID программы</string>
+    <string name="livetv_epgfix_search_label">Поиск ID программы</string>
+    <string name="livetv_epgfix_searching">Поиск…</string>
+    <string name="livetv_epgfix_no_results">Подходящих ID не найдено. Они появляются после загрузки телепрограммы.</string>
+    <string name="livetv_epgfix_use">Использовать</string>
+    <string name="livetv_epgfix_clear">Сбросить ручную привязку</string>
+    <string name="livetv_epgfix_applied">«%1$s» теперь использует ID программы %2$s</string>
+    <string name="livetv_epgfix_cleared">Ручная привязка программы для «%1$s» сброшена</string>
+    <string name="livetv_epgfix_failed">Не удалось сохранить привязку телепрограммы</string>
+    <plurals name="livetv_epgfix_programmes">
+        <item quantity="one">%1$d передача</item>
+        <item quantity="few">%1$d передачи</item>
+        <item quantity="many">%1$d передач</item>
+        <item quantity="other">%1$d передачи</item>
     </plurals>
 </resources>

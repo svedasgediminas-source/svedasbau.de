@@ -8,6 +8,7 @@ import app.novaiptv.core.domain.FavoritesRepository
 import app.novaiptv.core.domain.HistoryRepository
 import app.novaiptv.core.domain.PlaylistRepository
 import app.novaiptv.core.domain.PreferencesRepository
+import app.novaiptv.core.domain.ReminderRepository
 import app.novaiptv.core.domain.StreamResolver
 import app.novaiptv.core.domain.VodRepository
 import app.novaiptv.core.common.Clock
@@ -25,7 +26,9 @@ interface AppContainer {
     val vod: VodRepository
     val favorites: FavoritesRepository
     val history: HistoryRepository
+    val epgMapping: app.novaiptv.core.domain.EpgMappingSource
     val preferences: PreferencesRepository
+    val reminders: ReminderRepository
     val streamResolver: StreamResolver
     val catchup: CatchupResolver
     val clock: Clock

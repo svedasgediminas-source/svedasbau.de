@@ -14,6 +14,7 @@ import app.novaiptv.core.data.repository.FavoritesRepositoryImpl
 import app.novaiptv.core.data.repository.HistoryRepositoryImpl
 import app.novaiptv.core.data.repository.PlaylistRepositoryImpl
 import app.novaiptv.core.data.repository.PreferencesRepositoryImpl
+import app.novaiptv.core.data.repository.ReminderRepositoryImpl
 import app.novaiptv.core.data.repository.StreamResolverImpl
 import app.novaiptv.core.data.repository.VodRepositoryImpl
 import app.novaiptv.core.data.security.CredentialStoreImpl
@@ -25,6 +26,7 @@ import app.novaiptv.core.domain.FavoritesRepository
 import app.novaiptv.core.domain.HistoryRepository
 import app.novaiptv.core.domain.PlaylistRepository
 import app.novaiptv.core.domain.PreferencesRepository
+import app.novaiptv.core.domain.ReminderRepository
 import app.novaiptv.core.domain.StreamResolver
 import app.novaiptv.core.domain.VodRepository
 import app.novaiptv.data.xtream.XtreamClient
@@ -104,6 +106,14 @@ class DataGraph(context: Context) {
     val favorites: FavoritesRepository by lazy { FavoritesRepositoryImpl(database.favoriteDao(), clock) }
 
     val history: HistoryRepository by lazy { HistoryRepositoryImpl(database.historyDao()) }
+
+    /** Programme reminders (own DataStore file "nova_reminders"). */
+    val reminders: ReminderRepository by lazy { ReminderRepositoryImpl(appContext, clock) }
+
+    /** XMLTV ids with stored programmes, for manual EPG mapping (Live TV "Fix TV guide"). */
+    val epgMapping: app.novaiptv.core.domain.EpgMappingSource by lazy {
+        app.novaiptv.core.data.repository.EpgMappingSourceImpl(database.epgMappingDao())
+    }
 
     /** Re-imports playlists whose auto-refresh interval has elapsed (and their EPG). Never throws. */
     suspend fun refreshStalePlaylists() {

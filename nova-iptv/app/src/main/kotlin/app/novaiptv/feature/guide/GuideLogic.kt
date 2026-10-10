@@ -1,8 +1,10 @@
 package app.novaiptv.feature.guide
 
+import app.novaiptv.core.domain.Reminder
 import app.novaiptv.core.model.CatchupCapability
 import app.novaiptv.core.model.Channel
 import app.novaiptv.core.model.EpgProgram
+import app.novaiptv.feature.livetv.isAdultGroupName
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -266,3 +268,87 @@ fun relativeDayOffset(date: LocalDate, nowMillis: Long, zone: ZoneId): Int? {
         else -> null
     }
 }
+
+// ---------------------------------------------------------------------------------------------
+// Group filter (chip row above the grid)
+// ---------------------------------------------------------------------------------------------
+
+/** Identity of a guide group chip. [Group.name] "" is the bucket of channels without a group. */
+sealed interface GuideGroupKey {
+    data object All : GuideGroupKey
+    data object Favorites : GuideGroupKey
+    data class Group(val name: String) : GuideGroupKey
+}
+
+data class GuideGroup(val key: GuideGroupKey, val count: Int)
+
+/** Group name as shown/filtered in the guide: blank or missing group = "". */
+fun guideGroupName(channel: Channel): String = channel.groupName?.takeIf { it.isNotBlank() } ?: ""
+
+/**
+ * All, Favourites, then the channel groups of [channels] in playlist order (first appearance) with
+ * their counts. The "" group (no group) is always last. Adult-named groups are dropped when [hideAdult].
+ * [channels] are expected to be already adult-filtered per channel.
+ */
+fun buildGuideGroups(channels: List<Channel>, favoritesCount: Int, hideAdult: Boolean): List<GuideGroup> {
+    val counts = LinkedHashMap<String, Int>()
+    for (c in channels) {
+        val name = guideGroupName(c)
+        counts[name] = (counts[name] ?: 0) + 1
+    }
+    val groups = counts.entries
+        .filter { (name, _) -> !(hideAdult && isAdultGroupName(name)) }
+        .sortedBy { (name, _) -> name.isEmpty() } // stable: keeps playlist order, "" last
+        .map { (name, count) -> GuideGroup(GuideGroupKey.Group(name), count) }
+    return buildList {
+        add(GuideGroup(GuideGroupKey.All, groups.sumOf { it.count }))
+        add(GuideGroup(GuideGroupKey.Favorites, favoritesCount))
+        addAll(groups)
+    }
+}
+
+/** The selected key if it still exists in [groups], else [GuideGroupKey.All]. */
+fun resolveGuideGroup(selected: GuideGroupKey, groups: List<GuideGroup>): GuideGroupKey =
+    if (selected is GuideGroupKey.Group && groups.none { it.key == selected }) GuideGroupKey.All else selected
+
+/**
+ * Rows of the guide for [key]. Favourites follow the user's order ([favoriteIds]); groups keep
+ * playlist order. All = [channels] unchanged.
+ */
+fun filterGuideChannels(channels: List<Channel>, key: GuideGroupKey, favoriteIds: List<String>): List<Channel> = when (key) {
+    GuideGroupKey.All -> channels
+    GuideGroupKey.Favorites -> {
+        val byId = channels.associateBy { it.id }
+        favoriteIds.distinct().mapNotNull { byId[it] }
+    }
+    is GuideGroupKey.Group -> channels.filter { guideGroupName(it) == key.name }
+}
+
+/** Saveable token for a [GuideGroupKey] (rememberSaveable stores plain strings). */
+fun encodeGuideGroup(key: GuideGroupKey): String = when (key) {
+    GuideGroupKey.All -> "all"
+    GuideGroupKey.Favorites -> "fav"
+    is GuideGroupKey.Group -> "g:" + key.name
+}
+
+fun decodeGuideGroup(token: String?): GuideGroupKey = when {
+    token == null || token == "all" -> GuideGroupKey.All
+    token == "fav" -> GuideGroupKey.Favorites
+    token.startsWith("g:") -> GuideGroupKey.Group(token.substring(2))
+    else -> GuideGroupKey.All
+}
+
+// ---------------------------------------------------------------------------------------------
+// Reminders
+// ---------------------------------------------------------------------------------------------
+
+/** Reminder for [program] on [channel]. */
+fun reminderFor(channel: Channel, program: EpgProgram): Reminder =
+    Reminder(
+        channelId = channel.id,
+        epgId = channel.epgId ?: program.channelEpgId.takeIf { it.isNotEmpty() },
+        title = program.title,
+        startMillis = program.startMillis,
+        endMillis = program.endMillis,
+        channelName = channel.name,
+    )

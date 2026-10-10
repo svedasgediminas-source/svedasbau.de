@@ -9,6 +9,7 @@ import app.novaiptv.core.domain.FavoritesRepository
 import app.novaiptv.core.domain.HistoryRepository
 import app.novaiptv.core.domain.PlaylistRepository
 import app.novaiptv.core.domain.PreferencesRepository
+import app.novaiptv.core.domain.ReminderRepository
 import app.novaiptv.core.domain.StreamResolver
 import app.novaiptv.core.domain.VodRepository
 import kotlinx.coroutines.CoroutineScope
@@ -27,7 +28,9 @@ class AppContainerImpl(
     override val vod: VodRepository get() = graph.vod
     override val favorites: FavoritesRepository get() = graph.favorites
     override val history: HistoryRepository get() = graph.history
+    override val epgMapping: app.novaiptv.core.domain.EpgMappingSource get() = graph.epgMapping
     override val preferences: PreferencesRepository get() = graph.preferences
+    override val reminders: ReminderRepository get() = graph.reminders
     override val streamResolver: StreamResolver get() = graph.streamResolver
     override val catchup: CatchupResolver get() = graph.catchup
     override val clock: Clock get() = graph.clock

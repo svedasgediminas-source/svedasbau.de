@@ -99,7 +99,8 @@ private val RowShape = RoundedCornerShape(10.dp)
 /**
  * Live TV: categories | channel list | details of the focused channel.
  *
- * Remote: OK = play, long-press OK or MENU = toggle favourite, digits = jump to channel number,
+ * Remote: OK = play, long-press OK = toggle favourite, MENU = channel options (favourite, fix TV
+ * guide), digits = jump to channel number,
  * LEFT from the list = categories, RIGHT from categories = back to the list (same channel).
  *
  * Future work: a muted live mini-preview in the details pane (needs a shared player instance from
@@ -109,8 +110,9 @@ private val RowShape = RoundedCornerShape(10.dp)
 fun LiveTvScreen(onPlayChannel: (channelId: String, group: String?) -> Unit) {
     val c = LocalAppContainer.current
     val vm: LiveTvViewModel = viewModel {
-        LiveTvViewModel(c.playlists, c.channels, c.epg, c.favorites, c.history, c.preferences, c.clock)
+        LiveTvViewModel(c.playlists, c.channels, c.epg, c.favorites, c.history, c.preferences, c.clock, epgMapping = c.epgMapping)
     }
+    val epgFix by vm.epgFix.collectAsStateWithLifecycle()
     val state by vm.state.collectAsStateWithLifecycle()
     val nowNext by vm.nowNext.collectAsStateWithLifecycle()
     val nowMillis by vm.nowMillis.collectAsStateWithLifecycle()
@@ -164,6 +166,8 @@ fun LiveTvScreen(onPlayChannel: (channelId: String, group: String?) -> Unit) {
     var didInitialFocus by remember { mutableStateOf(false) }
     var searchEditing by remember { mutableStateOf(false) }
     var notice by remember { mutableStateOf<LiveTvEvent?>(null) }
+    /** Channel whose options dialog (MENU) is open. */
+    var optionsFor by remember { mutableStateOf<ChannelListItem?>(null) }
 
     fun focusChannel(id: String?) {
         if (channels.isEmpty()) return
@@ -247,6 +251,15 @@ fun LiveTvScreen(onPlayChannel: (channelId: String, group: String?) -> Unit) {
         }
             .distinctUntilChanged()
             .collect { vm.onVisibleChannels(it) }
+    }
+
+    fun toggleFavoriteOf(channel: ChannelListItem) {
+        if (state.selectedCategory == CategoryKey.Favorites && channel.id in state.favoriteIds) {
+            // The row will disappear: move focus to a neighbour first.
+            val index = channels.indexOfFirst { it.id == channel.id }
+            if (index >= 0) neighbourAfterRemoval(channels, index)?.let { channelFocusTarget = it }
+        }
+        vm.toggleFavorite(channel)
     }
 
     // Remembered: a linear lookup must not run on every recomposition (progress ticks etc.).
@@ -333,7 +346,7 @@ fun LiveTvScreen(onPlayChannel: (channelId: String, group: String?) -> Unit) {
                             verticalArrangement = Arrangement.spacedBy(6.dp),
                             contentPadding = PaddingValues(vertical = 6.dp, horizontal = 4.dp),
                         ) {
-                            itemsIndexed(channels, key = { _, ch -> ch.id }) { index, channel ->
+                            itemsIndexed(channels, key = { _, ch -> ch.id }) { _, channel ->
                                 val nn = channel.epgId?.let { nowNext[it] }
                                 ChannelRow(
                                     channel = channel,
@@ -349,13 +362,8 @@ fun LiveTvScreen(onPlayChannel: (channelId: String, group: String?) -> Unit) {
                                             onPlayChannel(channel.id, (state.selectedCategory as? CategoryKey.Group)?.name)
                                         }
                                     },
-                                    onToggleFavorite = {
-                                        if (state.selectedCategory == CategoryKey.Favorites && channel.id in state.favoriteIds) {
-                                            // The row will disappear: move focus to a neighbour first.
-                                            neighbourAfterRemoval(channels, index)?.let { channelFocusTarget = it }
-                                        }
-                                        vm.toggleFavorite(channel)
-                                    },
+                                    onToggleFavorite = { toggleFavoriteOf(channel) },
+                                    onOptions = { optionsFor = channel },
                                     onLeft = { focusSelectedCategory() },
                                 )
                             }
@@ -409,6 +417,12 @@ fun LiveTvScreen(onPlayChannel: (channelId: String, group: String?) -> Unit) {
                 } else {
                     stringResource(R.string.livetv_favorite_removed, event.channelName)
                 }
+                is LiveTvEvent.EpgMappingChanged -> if (event.epgId != null) {
+                    stringResource(R.string.livetv_epgfix_applied, event.channelName, event.epgId)
+                } else {
+                    stringResource(R.string.livetv_epgfix_cleared, event.channelName)
+                }
+                LiveTvEvent.EpgMappingFailed -> stringResource(R.string.livetv_epgfix_failed)
                 is LiveTvEvent.JumpTo -> null
             }
             if (text != null) {
@@ -424,6 +438,41 @@ fun LiveTvScreen(onPlayChannel: (channelId: String, group: String?) -> Unit) {
                 }
             }
         }
+    }
+
+    optionsFor?.let { channel ->
+        ChannelOptionsDialog(
+            channel = channel,
+            isFavorite = channel.id in state.favoriteIds,
+            onToggleFavorite = {
+                optionsFor = null
+                channelFocusTarget = channel.id
+                toggleFavoriteOf(channel)
+            },
+            onFixGuide = {
+                optionsFor = null
+                vm.openEpgFix(channel)
+            },
+            onDismiss = {
+                optionsFor = null
+                channelFocusTarget = channel.id
+            },
+        )
+    }
+
+    epgFix?.let { fix ->
+        EpgFixDialog(
+            state = fix,
+            onQueryChange = vm::setEpgFixQuery,
+            onApply = { epgId ->
+                channelFocusTarget = fix.channel.id
+                vm.applyEpgMapping(epgId)
+            },
+            onDismiss = {
+                channelFocusTarget = fix.channel.id
+                vm.closeEpgFix()
+            },
+        )
     }
 }
 
@@ -556,6 +605,7 @@ private fun ChannelRow(
     onFocused: () -> Unit,
     onClick: () -> Unit,
     onToggleFavorite: () -> Unit,
+    onOptions: () -> Unit,
     onLeft: () -> Unit,
 ) {
     val requester = remember { FocusRequester() }
@@ -579,7 +629,7 @@ private fun ChannelRow(
                     // Nothing focusable on the right: keep focus in the list.
                     event.key == Key.DirectionRight -> true
                     event.isMenuKey() -> {
-                        if (event.isKeyDown()) onToggleFavorite()
+                        if (event.isKeyUp()) onOptions()
                         true
                     }
                     else -> false

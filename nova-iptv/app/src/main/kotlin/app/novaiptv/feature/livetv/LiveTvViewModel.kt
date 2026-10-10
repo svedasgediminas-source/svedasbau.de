@@ -6,6 +6,8 @@ import app.novaiptv.core.common.AppError
 import app.novaiptv.core.common.Clock
 import app.novaiptv.core.domain.ChannelListItem
 import app.novaiptv.core.domain.ChannelRepository
+import app.novaiptv.core.domain.EpgIdSuggestion
+import app.novaiptv.core.domain.EpgMappingSource
 import app.novaiptv.core.domain.EpgRepository
 import app.novaiptv.core.domain.FavoritesRepository
 import app.novaiptv.core.domain.HistoryRepository
@@ -74,7 +76,18 @@ sealed interface LiveTvEvent {
     data class JumpTo(val channelId: String) : LiveTvEvent
     data class NumberNotFound(val number: Int) : LiveTvEvent
     data class FavoriteChanged(val channelName: String, val added: Boolean) : LiveTvEvent
+    /** Manual TV guide mapping saved; [epgId] null = manual mapping cleared. */
+    data class EpgMappingChanged(val channelName: String, val epgId: String?) : LiveTvEvent
+    data object EpgMappingFailed : LiveTvEvent
 }
+
+/** State of the "Fix TV guide" dialog for one channel. */
+data class EpgFixState(
+    val channel: ChannelListItem,
+    val query: String,
+    val loading: Boolean = true,
+    val suggestions: List<EpgIdSuggestion> = emptyList(),
+)
 
 private data class PlaylistPick(val id: Long?)
 
@@ -89,6 +102,8 @@ class LiveTvViewModel(
     private val clock: Clock,
     /** Where list filtering runs; injectable for tests. */
     private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    /** Source of XMLTV ids for the "Fix TV guide" dialog; null disables suggestions. */
+    private val epgMapping: EpgMappingSource? = null,
 ) : ViewModel() {
 
     private val retryTrigger = MutableStateFlow(0)
@@ -102,6 +117,11 @@ class LiveTvViewModel(
     private val _initialResolved = MutableStateFlow(false)
     private val events = EventChannel<LiveTvEvent>(EventChannel.BUFFERED)
     private var numberJob: Job? = null
+    private val _epgFix = MutableStateFlow<EpgFixState?>(null)
+    private var epgSearchJob: Job? = null
+
+    /** Open "Fix TV guide" dialog, or null. */
+    val epgFix: StateFlow<EpgFixState?> = _epgFix.asStateFlow()
 
     val eventFlow: Flow<LiveTvEvent> = events.receiveAsFlow()
     val numberEntry: StateFlow<String> = _numberEntry.asStateFlow()
@@ -274,6 +294,62 @@ class LiveTvViewModel(
         }
     }
 
+    /** Opens the "Fix TV guide" dialog, searching guide ids for the channel name. */
+    fun openEpgFix(channel: ChannelListItem) {
+        val query = channel.name.take(MAX_QUERY)
+        _epgFix.value = EpgFixState(channel = channel, query = query)
+        searchEpgIds(query, debounce = false)
+    }
+
+    fun setEpgFixQuery(text: String) {
+        val current = _epgFix.value ?: return
+        val query = text.take(MAX_QUERY)
+        if (query == current.query) return
+        _epgFix.value = current.copy(query = query, loading = true)
+        searchEpgIds(query, debounce = true)
+    }
+
+    fun closeEpgFix() {
+        epgSearchJob?.cancel()
+        _epgFix.value = null
+    }
+
+    /**
+     * Saves [epgId] as the manual TV guide id of the dialog's channel (null clears it). The
+     * channel list observes the database, so rows and now/next pick up the new id on their own.
+     */
+    fun applyEpgMapping(epgId: String?) {
+        val fix = _epgFix.value ?: return
+        closeEpgFix()
+        viewModelScope.launch {
+            try {
+                epg.setManualMapping(fix.channel.id, epgId)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                events.send(LiveTvEvent.EpgMappingFailed)
+                return@launch
+            }
+            events.send(LiveTvEvent.EpgMappingChanged(fix.channel.name, epgId?.trim()?.takeIf { it.isNotEmpty() }))
+        }
+    }
+
+    private fun searchEpgIds(query: String, debounce: Boolean) {
+        epgSearchJob?.cancel()
+        epgSearchJob = viewModelScope.launch {
+            if (debounce) delay(QUERY_DEBOUNCE_MS)
+            val found = try {
+                epgMapping?.searchEpgIds(query, EPG_SUGGESTIONS).orEmpty()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                emptyList()
+            }
+            val current = _epgFix.value ?: return@launch
+            if (current.query == query) _epgFix.value = current.copy(loading = false, suggestions = found)
+        }
+    }
+
     fun appendNumberDigit(digit: Int) {
         _numberEntry.value = appendDigit(_numberEntry.value, digit)
         numberJob?.cancel()
@@ -326,5 +402,6 @@ class LiveTvViewModel(
         const val TICK_MS = 30_000L
         const val NOW_NEXT_CACHE = 400
         const val MAX_QUERY = 60
+        const val EPG_SUGGESTIONS = 50
     }
 }

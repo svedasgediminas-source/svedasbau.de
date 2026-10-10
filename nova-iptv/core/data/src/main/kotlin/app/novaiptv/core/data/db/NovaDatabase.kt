@@ -25,6 +25,7 @@ abstract class NovaDatabase : RoomDatabase() {
     abstract fun playlistDao(): PlaylistDao
     abstract fun channelDao(): ChannelDao
     abstract fun programDao(): ProgramDao
+    abstract fun epgMappingDao(): EpgMappingDao
     abstract fun vodDao(): VodDao
     abstract fun favoriteDao(): FavoriteDao
     abstract fun historyDao(): HistoryDao

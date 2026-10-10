@@ -14,9 +14,9 @@
     <string name="livetv_empty_message">Add a playlist in Settings → Playlists to start watching.</string>
     <string name="livetv_empty_category">No channels in this category</string>
     <string name="livetv_empty_favorites_title">No favourite channels</string>
-    <string name="livetv_empty_favorites_message">In the channel list, hold OK or press MENU to add a channel to your favourites.</string>
+    <string name="livetv_empty_favorites_message">In the channel list, hold OK (or press MENU) to add a channel to your favourites.</string>
     <string name="livetv_no_results">No channels match “%1$s”</string>
-    <string name="livetv_hint_controls">OK: watch · Hold OK / MENU: favourite · 0–9: channel number</string>
+    <string name="livetv_hint_controls">OK: watch · Hold OK: favourite · MENU: options · 0–9: channel number</string>
     <string name="livetv_number_entry">Channel %1$s</string>
     <string name="livetv_number_not_found">Channel %1$d not found</string>
     <string name="livetv_favorite_added">“%1$s” added to favourites</string>
@@ -24,5 +24,23 @@
     <plurals name="livetv_catchup_days">
         <item quantity="one">Archive: %1$d day</item>
         <item quantity="other">Archive: %1$d days</item>
+    </plurals>
+    <!-- Manual TV guide (EPG) mapping -->
+    <string name="livetv_epgfix_action">Fix TV guide</string>
+    <string name="livetv_epgfix_action_hint">Choose which guide data this channel uses</string>
+    <string name="livetv_epgfix_title">TV guide for “%1$s”</string>
+    <string name="livetv_epgfix_current">Current guide id: %1$s</string>
+    <string name="livetv_epgfix_current_none">This channel has no guide id</string>
+    <string name="livetv_epgfix_search_label">Search guide ids</string>
+    <string name="livetv_epgfix_searching">Searching…</string>
+    <string name="livetv_epgfix_no_results">No matching guide ids. Guide ids appear here after the TV guide has been loaded.</string>
+    <string name="livetv_epgfix_use">Use this</string>
+    <string name="livetv_epgfix_clear">Clear manual mapping</string>
+    <string name="livetv_epgfix_applied">“%1$s” now uses guide id %2$s</string>
+    <string name="livetv_epgfix_cleared">Manual guide mapping of “%1$s” cleared</string>
+    <string name="livetv_epgfix_failed">Could not save the TV guide mapping</string>
+    <plurals name="livetv_epgfix_programmes">
+        <item quantity="one">%1$d programme</item>
+        <item quantity="other">%1$d programmes</item>
     </plurals>
 </resources>

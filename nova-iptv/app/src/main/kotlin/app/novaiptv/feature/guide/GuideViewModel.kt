@@ -6,12 +6,17 @@ import app.novaiptv.core.common.AppError
 import app.novaiptv.core.common.Clock
 import app.novaiptv.core.domain.ChannelRepository
 import app.novaiptv.core.domain.EpgRepository
+import app.novaiptv.core.domain.FavoritesRepository
 import app.novaiptv.core.domain.HistoryRepository
 import app.novaiptv.core.domain.PlaylistRepository
 import app.novaiptv.core.domain.PreferencesRepository
+import app.novaiptv.core.domain.ReminderRepository
+import app.novaiptv.core.domain.reminderKey
 import app.novaiptv.core.model.Channel
+import app.novaiptv.core.model.ContentType
 import app.novaiptv.core.model.EpgProgram
 import app.novaiptv.core.model.UserPreferences
+import app.novaiptv.feature.livetv.favoriteChannelIds
 import app.novaiptv.feature.livetv.filterChannels
 import app.novaiptv.feature.livetv.resolveActivePlaylistId
 import java.time.LocalDate
@@ -41,6 +46,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -49,7 +55,11 @@ sealed interface GuideChannelsState {
     data object Loading : GuideChannelsState
     data object NoPlaylist : GuideChannelsState
     data class Failed(val error: AppError) : GuideChannelsState
-    data class Loaded(val channels: List<Channel>) : GuideChannelsState
+    /**
+     * [channels] are the rows of the selected group; [unfilteredCount] is the size of the whole
+     * (adult-filtered) playlist, so an empty group can be told apart from an empty playlist.
+     */
+    data class Loaded(val channels: List<Channel>, val unfilteredCount: Int = channels.size) : GuideChannelsState
 }
 
 /** Programmes of the selected day keyed by EPG id. A missing key means "not loaded yet". */
@@ -58,9 +68,13 @@ data class ProgramCache(val dayStart: Long, val byEpgId: Map<String, List<EpgPro
 sealed interface GuideMessage {
     data object ArchiveUnavailable : GuideMessage
     data object ArchiveExpired : GuideMessage
-    data class Upcoming(val startMillis: Long) : GuideMessage
     data object NoInformation : GuideMessage
+    data class ReminderSet(val startMillis: Long) : GuideMessage
+    data object ReminderRemoved : GuideMessage
 }
+
+/** OK on a future programme: ask whether to set (or remove) a reminder. */
+data class GuideReminderPrompt(val channel: Channel, val program: EpgProgram, val reminded: Boolean)
 
 sealed interface GuidePlayRequest {
     data class Live(val channelId: String) : GuidePlayRequest
@@ -76,6 +90,11 @@ data class GuideUiState(
     val nowMillis: Long,
     val showNumbers: Boolean = true,
     val message: GuideMessage? = null,
+    val groups: List<GuideGroup> = emptyList(),
+    val selectedGroup: GuideGroupKey = GuideGroupKey.All,
+    /** [reminderKey]s of programmes with a reminder. */
+    val reminderKeys: Set<String> = emptySet(),
+    val reminderPrompt: GuideReminderPrompt? = null,
 ) {
     val channelList: List<Channel> get() = (channels as? GuideChannelsState.Loaded)?.channels.orEmpty()
 
@@ -84,9 +103,27 @@ data class GuideUiState(
         val id = channel.epgId ?: return emptyList()
         return programs.byEpgId[id]
     }
+
+    fun isReminded(channel: Channel, program: EpgProgram): Boolean =
+        reminderKeys.isNotEmpty() && reminderKey(channel.id, program.startMillis) in reminderKeys
 }
 
 private data class PlaylistPick(val id: Long?)
+
+/** Base (adult-filtered) playlist channels, the group chips and the rows of the selected group. */
+private data class GuideListData(
+    val base: GuideChannelsState,
+    val shown: GuideChannelsState,
+    val groups: List<GuideGroup>,
+    val selected: GuideGroupKey,
+)
+
+private data class GuideExtras(
+    val groups: List<GuideGroup>,
+    val selected: GuideGroupKey,
+    val reminderKeys: Set<String>,
+    val prompt: GuideReminderPrompt?,
+)
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class GuideViewModel(
@@ -95,6 +132,8 @@ class GuideViewModel(
     private val epg: EpgRepository,
     private val history: HistoryRepository,
     private val preferences: PreferencesRepository,
+    private val favorites: FavoritesRepository,
+    private val reminders: ReminderRepository,
     private val clock: Clock,
     private val zone: ZoneId = ZoneId.systemDefault(),
     /** Where list filtering runs; injectable for tests. */
@@ -112,6 +151,8 @@ class GuideViewModel(
     private val message = MutableStateFlow<GuideMessage?>(null)
     private var messageJob: Job? = null
     private var initialRow: Int = 0
+    private val selectedGroup = MutableStateFlow<GuideGroupKey>(GuideGroupKey.All)
+    private val reminderPrompt = MutableStateFlow<GuideReminderPrompt?>(null)
 
     private val prefs: StateFlow<UserPreferences> = preferences.preferences
         .catch { emit(UserPreferences()) }
@@ -128,9 +169,23 @@ class GuideViewModel(
         combine(prefs, playlists.observePlaylists()) { p, list ->
             PlaylistPick(resolveActivePlaylistId(p.activePlaylistId, list.map { it.id }))
         }
-    }.catch { emit(PlaylistPick(null)) }.distinctUntilChanged()
+    }.catch { emit(PlaylistPick(null)) }
+        .distinctUntilChanged()
+        .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
-    private val channelsState: StateFlow<GuideChannelsState> = combine(
+    /** Favourite channel ids of the active playlist, in the user's order. */
+    private val favoriteIds: Flow<List<String>> = combine(
+        playlistPick,
+        favorites.observeFavorites(ContentType.Channel).catch { emit(emptyList()) },
+    ) { pick, favs -> pick.id?.let { favoriteChannelIds(favs, it) }.orEmpty() }
+        .distinctUntilChanged()
+
+    private val reminderKeys: StateFlow<Set<String>> = reminders.observeReminders()
+        .map { list -> list.map { it.key }.toSet() }
+        .catch { emit(emptySet()) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
+    private val baseChannels: Flow<GuideChannelsState> = combine(
         playlistPick,
         prefs.map { it.hideAdultContent }.distinctUntilChanged(),
     ) { pick, hideAdult -> pick to hideAdult }
@@ -146,10 +201,38 @@ class GuideViewModel(
             }
         }
         .flowOn(computeDispatcher)
+
+    private val listData: StateFlow<GuideListData> = combine(
+        baseChannels,
+        selectedGroup,
+        favoriteIds.onStart { emit(emptyList()) },
+        prefs.map { it.hideAdultContent }.distinctUntilChanged(),
+    ) { base, selected, favIds, hideAdult ->
+        if (base !is GuideChannelsState.Loaded) {
+            GuideListData(base, base, emptyList(), selected)
+        } else {
+            val all = base.channels
+            val favCount = filterGuideChannels(all, GuideGroupKey.Favorites, favIds).size
+            val groups = buildGuideGroups(all, favCount, hideAdult)
+            val key = resolveGuideGroup(selected, groups)
+            val shown = GuideChannelsState.Loaded(filterGuideChannels(all, key, favIds), unfilteredCount = all.size)
+            GuideListData(base, shown, groups, key)
+        }
+    }
+        .flowOn(computeDispatcher)
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            GuideListData(GuideChannelsState.Loading, GuideChannelsState.Loading, emptyList(), GuideGroupKey.All),
+        )
+
+    private val channelsState: StateFlow<GuideChannelsState> = listData
+        .map { it.shown }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GuideChannelsState.Loading)
 
     private val days: Flow<List<GuideDay>> = combine(
-        channelsState.map { s -> maxCatchupDays((s as? GuideChannelsState.Loaded)?.channels.orEmpty()) }.distinctUntilChanged(),
+        // Whole playlist (not the selected group) so the day list stays stable while filtering.
+        listData.map { d -> maxCatchupDays((d.base as? GuideChannelsState.Loaded)?.channels.orEmpty()) }.distinctUntilChanged(),
         nowMillis.map { localDateOf(it, zone) }.distinctUntilChanged(),
     ) { past, _ -> buildGuideDays(clock.nowMillis(), zone, past) }
 
@@ -158,8 +241,10 @@ class GuideViewModel(
         days,
         selectedDate,
         combine(cursor, programs, message) { cur, cache, msg -> Triple(cur, cache, msg) },
-        combine(nowMillis, prefs) { now, p -> now to p.showChannelNumbers },
-    ) { chs, dayList, date, (cur, cache, msg), (now, showNumbers) ->
+        combine(nowMillis, prefs, listData, reminderKeys, reminderPrompt) { now, p, data, keys, prompt ->
+            Triple(now, p.showChannelNumbers, GuideExtras(data.groups, data.selected, keys, prompt))
+        },
+    ) { chs, dayList, date, (cur, cache, msg), (now, showNumbers, ex) ->
         GuideUiState(
             channels = chs,
             days = dayList,
@@ -169,6 +254,10 @@ class GuideViewModel(
             nowMillis = now,
             showNumbers = showNumbers,
             message = msg,
+            groups = ex.groups,
+            selectedGroup = ex.selected,
+            reminderKeys = ex.reminderKeys,
+            reminderPrompt = ex.prompt,
         )
     }.stateIn(
         viewModelScope,
@@ -190,6 +279,13 @@ class GuideViewModel(
                 nowMillis, // periodic tick: re-checks rows whose EPG was still empty
             ) { rows, loaded, date, _ -> Triple(rows, loaded.channels, date) }
                 .collectLatest { (rows, list, date) -> loadPrograms(rows, list, guideDay(date, zone)) }
+        }
+        // Keep the cursor inside the list when it shrinks (group switch, favourite removed).
+        viewModelScope.launch {
+            channelsState.filterIsInstance<GuideChannelsState.Loaded>().collect { loaded ->
+                val size = loaded.channels.size
+                cursor.update { cur -> if (cur != null && size > 0 && cur.row > size - 1) cur.copy(row = size - 1) else cur }
+            }
         }
         // Start on the last watched channel, if any.
         viewModelScope.launch {
@@ -360,12 +456,47 @@ class GuideViewModel(
                         null
                     }
                     GuideAction.Upcoming -> {
-                        showMessage(GuideMessage.Upcoming(p.startMillis))
+                        val reminded = reminderKey(channel.id, p.startMillis) in reminderKeys.value
+                        reminderPrompt.value = GuideReminderPrompt(channel, p, reminded)
                         null
                     }
                 }
             }
         }
+    }
+
+    /** Chip row: shows only [key]'s channels; the cursor moves to the first row. */
+    fun selectGroup(key: GuideGroupKey) {
+        if (key == selectedGroup.value) return
+        selectedGroup.value = key
+        initialRow = 0
+        cursor.update { it?.copy(row = 0) }
+    }
+
+    /** Restores a saved selection (process death) without moving the cursor. */
+    fun restoreGroup(key: GuideGroupKey) {
+        if (key != selectedGroup.value) selectedGroup.value = key
+    }
+
+    /** [Remind me] / [Remove reminder] in the prompt. */
+    fun confirmReminderPrompt() {
+        val prompt = reminderPrompt.value ?: return
+        reminderPrompt.value = null
+        val p = prompt.program
+        viewModelScope.launch {
+            if (prompt.reminded) {
+                reminders.remove(prompt.channel.id, p.startMillis)
+                showMessage(GuideMessage.ReminderRemoved)
+            } else {
+                // The repository ignores programmes that ended meanwhile; a running one fires at once.
+                reminders.add(reminderFor(prompt.channel, p))
+                showMessage(GuideMessage.ReminderSet(p.startMillis))
+            }
+        }
+    }
+
+    fun dismissReminderPrompt() {
+        reminderPrompt.value = null
     }
 
     private fun showMessage(msg: GuideMessage) {
