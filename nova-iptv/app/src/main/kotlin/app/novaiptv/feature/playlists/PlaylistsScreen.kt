@@ -51,6 +51,7 @@ import app.novaiptv.ui.ConfirmDialog
 import app.novaiptv.ui.ImportProgressBanner
 import app.novaiptv.ui.TextInputDialog
 import app.novaiptv.ui.errorMessage
+import app.novaiptv.ui.playlistErrorMessage
 import app.novaiptv.ui.importSummaryText
 
 private enum class PlaylistDialog { AddType, Rename, Epg, Delete }
@@ -245,7 +246,7 @@ private fun PlaylistDetails(
                 }
                 if (!playlist.lastError.isNullOrBlank()) {
                     Text(
-                        stringResource(R.string.playlist_last_error, playlist.lastError.orEmpty()),
+                        stringResource(R.string.playlist_last_error, playlistErrorMessage(playlist.lastError.orEmpty())),
                         style = MaterialTheme.typography.bodyMedium,
                         color = NovaColors.Error,
                         maxLines = 2,

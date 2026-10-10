@@ -61,6 +61,7 @@ import app.novaiptv.ui.ChoiceDialog
 import app.novaiptv.ui.ConfirmDialog
 import app.novaiptv.ui.ImportProgressBanner
 import app.novaiptv.ui.errorMessage
+import app.novaiptv.ui.playlistErrorMessage
 
 enum class SettingsCategory(val titleRes: Int, val icon: ImageVector) {
     Playlists(R.string.settings_cat_playlists, Icons.Filled.VideoLibrary),
@@ -296,7 +297,7 @@ private fun LazyListScope.playlistsSection(
     items(playlists, key = { "pl_${it.id}" }) { playlist ->
         NovaListItem(
             headline = playlist.name,
-            supporting = playlist.lastError?.takeIf { it.isNotBlank() } ?: playlistSourceLabel(playlist.source),
+            supporting = playlist.lastError?.takeIf { it.isNotBlank() }?.let { playlistErrorMessage(it) } ?: playlistSourceLabel(playlist.source),
             trailing = if (playlist.id == activeId) stringResource(R.string.playlist_active) else null,
             onClick = onOpenPlaylists,
         )
