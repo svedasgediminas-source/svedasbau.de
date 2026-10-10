@@ -14,10 +14,10 @@ import java.time.format.DateTimeFormatter
  */
 object XtreamUrls {
     /** Must match app.novaiptv.core.domain.StreamResolver.USER_PLACEHOLDER (data:xtream does not depend on core:domain). */
-    internal const val USER_PLACEHOLDER = "{xtream_user}"
+    internal const val USER_PLACEHOLDER = app.novaiptv.core.common.StreamPlaceholders.USER
 
     /** Must match app.novaiptv.core.domain.StreamResolver.PASS_PLACEHOLDER. */
-    internal const val PASS_PLACEHOLDER = "{xtream_pass}"
+    internal const val PASS_PLACEHOLDER = app.novaiptv.core.common.StreamPlaceholders.PASS
 
     private val TIMESHIFT_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd:HH-mm")
 

@@ -141,7 +141,7 @@ interface StreamResolver {
     suspend fun resolve(playlistId: Long, stream: StreamSource): StreamSource
 
     companion object {
-        const val USER_PLACEHOLDER = "{xtream_user}"
-        const val PASS_PLACEHOLDER = "{xtream_pass}"
+        const val USER_PLACEHOLDER = app.novaiptv.core.common.StreamPlaceholders.USER
+        const val PASS_PLACEHOLDER = app.novaiptv.core.common.StreamPlaceholders.PASS
     }
 }
