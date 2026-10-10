@@ -162,4 +162,7 @@
     <string name="home_live_no_info">No programme information</string>
     <string name="home_live_next">Next at %1$s: %2$s</string>
     <string name="home_group_other">Other channels</string>
+    <string name="reminder_banner_text">Starting now: %1$s on %2$s</string>
+    <string name="reminder_watch">Watch</string>
+    <string name="reminder_dismiss">Dismiss</string>
 </resources>

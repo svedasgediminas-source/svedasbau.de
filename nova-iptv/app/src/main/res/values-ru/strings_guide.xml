@@ -10,10 +10,21 @@
     <string name="guide_loading">Загрузка…</string>
     <string name="guide_archive_unavailable">Архив для этого канала недоступен</string>
     <string name="guide_archive_expired">Эта передача больше не доступна в архиве</string>
-    <string name="guide_upcoming">Начало в %1$s. Напоминания появятся в одном из следующих обновлений.</string>
     <string name="guide_live_badge">В ЭФИРЕ</string>
     <string name="guide_archive_badge">АРХИВ</string>
     <string name="guide_empty_title">Телепрограммы пока нет</string>
     <string name="guide_empty_message">Добавьте плейлист с источником EPG в разделе Настройки → Плейлисты.</string>
     <string name="guide_no_channels_title">В этом плейлисте нет каналов</string>
+    <string name="guide_group_all">Все каналы</string>
+    <string name="guide_group_favorites">Избранное</string>
+    <string name="guide_group_other">Другие каналы</string>
+    <string name="guide_group_empty">В этой группе нет каналов</string>
+    <string name="guide_group_empty_favorites">Избранных каналов пока нет. Добавьте их в разделе «Эфир».</string>
+    <string name="guide_reminder_question">Напомнить, когда начнётся эта передача?</string>
+    <string name="guide_reminder_is_set">Для этой передачи установлено напоминание.</string>
+    <string name="guide_reminder_add">Напомнить</string>
+    <string name="guide_reminder_remove">Удалить напоминание</string>
+    <string name="guide_reminder_set">Напоминание установлено на %1$s</string>
+    <string name="guide_reminder_removed">Напоминание удалено</string>
+    <string name="guide_reminder_badge">Напоминание</string>
 </resources>

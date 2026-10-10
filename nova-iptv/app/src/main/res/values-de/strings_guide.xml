@@ -10,10 +10,21 @@
     <string name="guide_loading">Wird geladen…</string>
     <string name="guide_archive_unavailable">Für diesen Sender ist kein Archiv verfügbar</string>
     <string name="guide_archive_expired">Diese Sendung ist nicht mehr im Archiv</string>
-    <string name="guide_upcoming">Beginnt um %1$s. Erinnerungen folgen in einem späteren Update.</string>
     <string name="guide_live_badge">LIVE</string>
     <string name="guide_archive_badge">ARCHIV</string>
     <string name="guide_empty_title">Noch kein TV-Programm</string>
     <string name="guide_empty_message">Füge unter Einstellungen → Playlists eine Playlist mit EPG-Quelle hinzu.</string>
     <string name="guide_no_channels_title">Keine Sender in dieser Playlist</string>
+    <string name="guide_group_all">Alle Sender</string>
+    <string name="guide_group_favorites">Favoriten</string>
+    <string name="guide_group_other">Weitere Sender</string>
+    <string name="guide_group_empty">Keine Sender in dieser Gruppe</string>
+    <string name="guide_group_empty_favorites">Noch keine Lieblingssender. Füge sie unter Live-TV hinzu.</string>
+    <string name="guide_reminder_question">Erinnern, wenn diese Sendung beginnt?</string>
+    <string name="guide_reminder_is_set">Für diese Sendung ist eine Erinnerung gesetzt.</string>
+    <string name="guide_reminder_add">Erinnern</string>
+    <string name="guide_reminder_remove">Erinnerung entfernen</string>
+    <string name="guide_reminder_set">Erinnerung für %1$s gesetzt</string>
+    <string name="guide_reminder_removed">Erinnerung entfernt</string>
+    <string name="guide_reminder_badge">Erinnerung</string>
 </resources>

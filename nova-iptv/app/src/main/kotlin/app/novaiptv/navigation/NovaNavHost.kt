@@ -246,5 +246,6 @@ fun NovaNavHost(onExit: () -> Unit) {
                 }
             }
         }
+        app.novaiptv.ui.ReminderBanner(onWatch = { id -> navController.navigate(Route.PlayChannel(id)) })
     }
 }

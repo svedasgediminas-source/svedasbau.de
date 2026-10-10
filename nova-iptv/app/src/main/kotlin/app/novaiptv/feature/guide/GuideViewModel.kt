@@ -484,13 +484,19 @@ class GuideViewModel(
         reminderPrompt.value = null
         val p = prompt.program
         viewModelScope.launch {
-            if (prompt.reminded) {
-                reminders.remove(prompt.channel.id, p.startMillis)
-                showMessage(GuideMessage.ReminderRemoved)
-            } else {
-                // The repository ignores programmes that ended meanwhile; a running one fires at once.
-                reminders.add(reminderFor(prompt.channel, p))
-                showMessage(GuideMessage.ReminderSet(p.startMillis))
+            try {
+                if (prompt.reminded) {
+                    reminders.remove(prompt.channel.id, p.startMillis)
+                    showMessage(GuideMessage.ReminderRemoved)
+                } else {
+                    // The repository ignores programmes that ended meanwhile; a running one fires at once.
+                    reminders.add(reminderFor(prompt.channel, p))
+                    showMessage(GuideMessage.ReminderSet(p.startMillis))
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                // Storage failure: the bell simply does not appear; nothing else to do.
             }
         }
     }

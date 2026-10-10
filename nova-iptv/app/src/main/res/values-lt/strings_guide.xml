@@ -10,10 +10,21 @@
     <string name="guide_loading">Įkeliama…</string>
     <string name="guide_archive_unavailable">Šio kanalo archyvas nepasiekiamas</string>
     <string name="guide_archive_expired">Šios laidos archyve jau nebėra</string>
-    <string name="guide_upcoming">Prasideda %1$s. Priminimai atsiras viename iš būsimų atnaujinimų.</string>
     <string name="guide_live_badge">TIESIOGIAI</string>
     <string name="guide_archive_badge">ARCHYVAS</string>
     <string name="guide_empty_title">TV programos dar nėra</string>
     <string name="guide_empty_message">Pridėkite grojaraštį su EPG šaltiniu skiltyje Nustatymai → Grojaraščiai.</string>
     <string name="guide_no_channels_title">Šiame grojaraštyje kanalų nėra</string>
+    <string name="guide_group_all">Visi kanalai</string>
+    <string name="guide_group_favorites">Mėgstami</string>
+    <string name="guide_group_other">Kiti kanalai</string>
+    <string name="guide_group_empty">Šioje grupėje kanalų nėra</string>
+    <string name="guide_group_empty_favorites">Mėgstamų kanalų dar nėra. Pridėkite juos skiltyje TV kanalai.</string>
+    <string name="guide_reminder_question">Priminti, kai ši laida prasidės?</string>
+    <string name="guide_reminder_is_set">Šiai laidai priminimas jau nustatytas.</string>
+    <string name="guide_reminder_add">Priminti</string>
+    <string name="guide_reminder_remove">Pašalinti priminimą</string>
+    <string name="guide_reminder_set">Priminimas nustatytas %1$s</string>
+    <string name="guide_reminder_removed">Priminimas pašalintas</string>
+    <string name="guide_reminder_badge">Priminimas</string>
 </resources>

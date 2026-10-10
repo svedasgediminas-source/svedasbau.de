@@ -161,4 +161,7 @@
     <string name="home_live_no_info">Нет информации о передаче</string>
     <string name="home_live_next">Далее в %1$s: %2$s</string>
     <string name="home_group_other">Другие каналы</string>
+    <string name="reminder_banner_text">Начинается сейчас: %1$s на %2$s</string>
+    <string name="reminder_watch">Смотреть</string>
+    <string name="reminder_dismiss">Закрыть</string>
 </resources>

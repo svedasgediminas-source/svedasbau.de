@@ -10,10 +10,21 @@
     <string name="guide_loading">Loading…</string>
     <string name="guide_archive_unavailable">Archive not available for this channel</string>
     <string name="guide_archive_expired">This programme is no longer in the archive</string>
-    <string name="guide_upcoming">Starts at %1$s. Reminders are coming in a future update.</string>
     <string name="guide_live_badge">LIVE</string>
     <string name="guide_archive_badge">ARCHIVE</string>
     <string name="guide_empty_title">No TV guide yet</string>
     <string name="guide_empty_message">Add a playlist with an EPG source in Settings → Playlists.</string>
     <string name="guide_no_channels_title">No channels in this playlist</string>
+    <string name="guide_group_all">All channels</string>
+    <string name="guide_group_favorites">Favourites</string>
+    <string name="guide_group_other">Other channels</string>
+    <string name="guide_group_empty">No channels in this group</string>
+    <string name="guide_group_empty_favorites">No favourite channels yet. Add them in Live TV.</string>
+    <string name="guide_reminder_question">Remind you when this programme starts?</string>
+    <string name="guide_reminder_is_set">A reminder is set for this programme.</string>
+    <string name="guide_reminder_add">Remind me</string>
+    <string name="guide_reminder_remove">Remove reminder</string>
+    <string name="guide_reminder_set">Reminder set for %1$s</string>
+    <string name="guide_reminder_removed">Reminder removed</string>
+    <string name="guide_reminder_badge">Reminder</string>
 </resources>

@@ -161,4 +161,7 @@
     <string name="home_live_no_info">Nėra laidų informacijos</string>
     <string name="home_live_next">Toliau %1$s: %2$s</string>
     <string name="home_group_other">Kiti kanalai</string>
+    <string name="reminder_banner_text">Prasideda dabar: %1$s, kanalas %2$s</string>
+    <string name="reminder_watch">Žiūrėti</string>
+    <string name="reminder_dismiss">Uždaryti</string>
 </resources>

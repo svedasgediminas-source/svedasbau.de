@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalTvMaterial3Api::class)
+@file:OptIn(ExperimentalTvMaterial3Api::class, ExperimentalComposeUiApi::class)
 
 package app.novaiptv.feature.guide
 
@@ -30,21 +30,25 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
@@ -67,16 +71,20 @@ import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
 import app.novaiptv.R
 import app.novaiptv.core.designsystem.ChannelLogo
+import app.novaiptv.core.designsystem.NovaButton
 import app.novaiptv.core.designsystem.EmptyState
 import app.novaiptv.core.designsystem.ErrorState
 import app.novaiptv.core.designsystem.LoadingState
 import app.novaiptv.core.designsystem.NovaColors
+import app.novaiptv.core.domain.reminderKey
 import app.novaiptv.core.model.Channel
 import app.novaiptv.core.model.EpgProgram
 import app.novaiptv.di.LocalAppContainer
 import app.novaiptv.feature.livetv.formatChannelNumber
 import app.novaiptv.feature.livetv.isKeyDown
 import app.novaiptv.feature.livetv.isSelectKey
+import app.novaiptv.ui.NovaDialog
+import app.novaiptv.ui.RequestInitialFocus
 import app.novaiptv.ui.errorMessage
 import java.time.ZoneId
 import java.util.Locale
@@ -107,9 +115,17 @@ fun GuideScreen(
 ) {
     val c = LocalAppContainer.current
     val vm: GuideViewModel = viewModel {
-        GuideViewModel(c.playlists, c.channels, c.epg, c.history, c.preferences, c.clock)
+        GuideViewModel(c.playlists, c.channels, c.epg, c.history, c.preferences, c.favorites, c.reminders, c.clock)
     }
     val state by vm.state.collectAsStateWithLifecycle()
+
+    // Last selected group: the ViewModel keeps it across tab switches, this token survives process death.
+    var groupToken by rememberSaveable { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) { groupToken?.let { vm.restoreGroup(decodeGuideGroup(it)) } }
+    val onSelectGroup: (GuideGroupKey) -> Unit = { key ->
+        groupToken = encodeGuideGroup(key)
+        vm.selectGroup(key)
+    }
 
     when (val chs = state.channels) {
         GuideChannelsState.Loading -> {
@@ -133,7 +149,7 @@ fun GuideScreen(
             }
             return
         }
-        is GuideChannelsState.Loaded -> if (chs.channels.isEmpty()) {
+        is GuideChannelsState.Loaded -> if (chs.unfilteredCount == 0) {
             Box(Modifier.fillMaxSize().background(NovaColors.Background), contentAlignment = Alignment.Center) {
                 EmptyState(
                     title = stringResource(R.string.guide_no_channels_title),
@@ -154,6 +170,30 @@ fun GuideScreen(
     val gridFocus = remember { FocusRequester() }
     var gridFocused by remember { mutableStateOf(false) }
     val rowsState = rememberLazyListState()
+
+    // A new group starts at its first row.
+    var shownGroup by remember { mutableStateOf(state.selectedGroup) }
+    LaunchedEffect(state.selectedGroup) {
+        if (state.selectedGroup != shownGroup) {
+            shownGroup = state.selectedGroup
+            rowsState.scrollToItem(state.cursor?.row ?: 0)
+        }
+    }
+
+    state.reminderPrompt?.let { prompt ->
+        ReminderDialog(
+            prompt = prompt,
+            clock = clock,
+            onConfirm = {
+                vm.confirmReminderPrompt()
+                runCatching { gridFocus.requestFocus() }
+            },
+            onDismiss = {
+                vm.dismissReminderPrompt()
+                runCatching { gridFocus.requestFocus() }
+            },
+        )
+    }
 
     // Enter the screen with the grid focused.
     LaunchedEffect(Unit) {
@@ -214,13 +254,17 @@ fun GuideScreen(
                 runCatching { gridFocus.requestFocus() }
             },
         )
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(8.dp))
+        GroupChipRow(groups = state.groups, selected = state.selectedGroup, onSelect = onSelectGroup)
+        Spacer(Modifier.height(8.dp))
         InfoPanel(
             channel = focusedChannel,
             cell = focusedCell,
             nowMillis = state.nowMillis,
             clock = clock,
             message = state.message,
+            reminded = focusedChannel != null && focusedCell is GuideCell.Program &&
+                state.isReminded(focusedChannel, focusedCell.program),
         )
         Spacer(Modifier.height(12.dp))
 
@@ -295,8 +339,19 @@ fun GuideScreen(
                                 nowMillis = state.nowMillis,
                                 showNumber = state.showNumbers,
                                 clock = clock,
+                                reminderKeys = state.reminderKeys,
                             )
                         }
+                    }
+                    if (channels.isEmpty()) {
+                        Text(
+                            text = stringResource(
+                                if (state.selectedGroup == GuideGroupKey.Favorites) R.string.guide_group_empty_favorites else R.string.guide_group_empty,
+                            ),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = NovaColors.TextMuted,
+                            modifier = Modifier.align(Alignment.Center).padding(24.dp),
+                        )
                     }
                     val now = state.nowMillis
                     if (now in viewStart until viewEnd) {
@@ -395,12 +450,78 @@ private fun HeaderChip(text: String, selected: Boolean, accent: Boolean, onClick
 }
 
 @Composable
+private fun groupLabel(key: GuideGroupKey): String = when (key) {
+    GuideGroupKey.All -> stringResource(R.string.guide_group_all)
+    GuideGroupKey.Favorites -> stringResource(R.string.guide_group_favorites)
+    is GuideGroupKey.Group -> if (key.name.isEmpty()) stringResource(R.string.guide_group_other) else key.name
+}
+
+/** All · Favourites · groups. OK filters the grid; DOWN goes to the grid, UP to the day row. */
+@Composable
+private fun GroupChipRow(groups: List<GuideGroup>, selected: GuideGroupKey, onSelect: (GuideGroupKey) -> Unit) {
+    if (groups.isEmpty()) return
+    val listState = rememberLazyListState()
+    LaunchedEffect(groups.size) {
+        val index = groups.indexOfFirst { it.key == selected }
+        if (index > 0) listState.scrollToItem((index - 1).coerceAtLeast(0))
+    }
+    LazyRow(
+        state = listState,
+        modifier = Modifier.fillMaxWidth().focusRestorer(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
+    ) {
+        items(groups, key = { encodeGuideGroup(it.key) }) { group ->
+            HeaderChip(
+                text = groupLabel(group.key) + "  " + group.count,
+                selected = group.key == selected,
+                accent = false,
+                onClick = { onSelect(group.key) },
+            )
+        }
+    }
+}
+
+/** OK on a future programme: [Remind me] / [Remove reminder] and [Cancel]. */
+@Composable
+private fun ReminderDialog(prompt: GuideReminderPrompt, clock: ClockFormat, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    val confirmFocus = remember { FocusRequester() }
+    val p = prompt.program
+    NovaDialog(title = p.title, onDismiss = onDismiss) {
+        Text(
+            text = prompt.channel.name + "  ·  " + clock.range(p.startMillis, p.endMillis),
+            style = MaterialTheme.typography.bodyLarge,
+            color = NovaColors.TextSecondary,
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = stringResource(if (prompt.reminded) R.string.guide_reminder_is_set else R.string.guide_reminder_question),
+            style = MaterialTheme.typography.bodyMedium,
+            color = NovaColors.TextSecondary,
+        )
+        Spacer(Modifier.height(28.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            NovaButton(
+                text = stringResource(if (prompt.reminded) R.string.guide_reminder_remove else R.string.guide_reminder_add),
+                onClick = onConfirm,
+                icon = Icons.Filled.Notifications,
+                primary = true,
+                modifier = Modifier.focusRequester(confirmFocus),
+            )
+            NovaButton(text = stringResource(R.string.common_cancel), onClick = onDismiss)
+        }
+    }
+    RequestInitialFocus(confirmFocus)
+}
+
+@Composable
 private fun InfoPanel(
     channel: Channel?,
     cell: GuideCell?,
     nowMillis: Long,
     clock: ClockFormat,
     message: GuideMessage?,
+    reminded: Boolean,
 ) {
     Column(
         Modifier
@@ -430,6 +551,22 @@ private fun InfoPanel(
                     maxLines = 1,
                 )
                 StatusBadge(program, channel, nowMillis)
+                if (reminded) {
+                    Spacer(Modifier.width(12.dp))
+                    Icon(
+                        imageVector = Icons.Filled.Notifications,
+                        contentDescription = stringResource(R.string.guide_reminder_badge),
+                        tint = NovaColors.Favorite,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = stringResource(R.string.guide_reminder_badge),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = NovaColors.Favorite,
+                        maxLines = 1,
+                    )
+                }
             }
         }
         Spacer(Modifier.height(4.dp))
@@ -446,8 +583,9 @@ private fun InfoPanel(
                 text = when (message) {
                     GuideMessage.ArchiveUnavailable -> stringResource(R.string.guide_archive_unavailable)
                     GuideMessage.ArchiveExpired -> stringResource(R.string.guide_archive_expired)
-                    is GuideMessage.Upcoming -> stringResource(R.string.guide_upcoming, clock.time(message.startMillis))
                     GuideMessage.NoInformation -> stringResource(R.string.guide_no_programme)
+                    is GuideMessage.ReminderSet -> stringResource(R.string.guide_reminder_set, clock.time(message.startMillis))
+                    GuideMessage.ReminderRemoved -> stringResource(R.string.guide_reminder_removed)
                 },
                 style = MaterialTheme.typography.titleSmall,
                 color = NovaColors.Favorite,
@@ -536,6 +674,7 @@ private fun GuideRow(
     nowMillis: Long,
     showNumber: Boolean,
     clock: ClockFormat,
+    reminderKeys: Set<String>,
 ) {
     val cells = remember(programs, day) { buildRowCells(programs.orEmpty(), day) }
     val hasPrograms = !programs.isNullOrEmpty()
@@ -598,6 +737,7 @@ private fun GuideRow(
                     ProgramCell(
                         program = cell.program,
                         archive = isInArchive(channel.catchup, cell.program.startMillis, cell.program.endMillis, nowMillis),
+                        reminded = reminderKeys.isNotEmpty() && reminderKey(channel.id, cell.program.startMillis) in reminderKeys,
                         nowMillis = nowMillis,
                         selected = selected,
                         gridFocused = gridFocused,
@@ -634,6 +774,7 @@ private fun GuideRow(
 private fun ProgramCell(
     program: EpgProgram,
     archive: Boolean,
+    reminded: Boolean,
     nowMillis: Long,
     selected: Boolean,
     gridFocused: Boolean,
@@ -673,6 +814,14 @@ private fun ProgramCell(
                         imageVector = Icons.Filled.History,
                         contentDescription = stringResource(R.string.guide_archive_badge),
                         tint = if (selected && gridFocused) NovaColors.OnAccent else NovaColors.Secondary,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                } else if (reminded && !past) {
+                    Icon(
+                        imageVector = Icons.Filled.Notifications,
+                        contentDescription = stringResource(R.string.guide_reminder_badge),
+                        tint = if (selected && gridFocused) NovaColors.OnAccent else NovaColors.Favorite,
                         modifier = Modifier.size(16.dp),
                     )
                     Spacer(Modifier.width(6.dp))
