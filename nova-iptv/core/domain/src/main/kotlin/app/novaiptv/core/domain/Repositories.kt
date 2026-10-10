@@ -131,3 +131,17 @@ interface CredentialStore {
 interface CatchupResolver {
     suspend fun resolve(channel: Channel, program: EpgProgram, nowMillis: Long): StreamSource?
 }
+
+/**
+ * Xtream stream URLs are stored with the placeholders [USER_PLACEHOLDER] / [PASS_PLACEHOLDER]
+ * instead of real credentials, so the database never holds passwords. The player calls
+ * [resolve] right before playback to substitute values from [CredentialStore].
+ */
+interface StreamResolver {
+    suspend fun resolve(playlistId: Long, stream: StreamSource): StreamSource
+
+    companion object {
+        const val USER_PLACEHOLDER = "{xtream_user}"
+        const val PASS_PLACEHOLDER = "{xtream_pass}"
+    }
+}
