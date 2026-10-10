@@ -178,7 +178,7 @@ jobs:
           grep -E 'FAILED|Tests on|What went wrong|No tests|BUILD ' build/emulator/connected.log 2>/dev/null | head -30 || true
           grep -A3 'What went wrong' build/emulator/connected.log 2>/dev/null | head -20 || true
           echo "===== QA MEASUREMENTS ====="
-          grep -h 'NovaQA' build/emulator/logcat-instrumented.txt 2>/dev/null | sed -E 's/^.*NovaQA *: //' | head -40 || true
+          grep -h 'NovaQA' build/emulator/logcat-instrumented.txt 2>/dev/null | sed -E 's/^.*NovaQA *: //' | head -90 || true
           echo "===== SMOKE ====="
           cat build/emulator/smoke.txt 2>/dev/null || true
           ls build/emulator/screens 2>/dev/null | tr '\n' ' '; echo
