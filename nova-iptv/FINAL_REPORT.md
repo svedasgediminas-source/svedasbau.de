@@ -4,7 +4,7 @@
 
 Built and tested on GitHub Actions (this cloud container cannot download the Android SDK; see
 "Environment" below). Reference run with full results:
-https://github.com/svedasgediminas-source/svedasbau.de/actions/runs/38011972795 (build + emulator jobs: success)
+https://github.com/svedasgediminas-source/svedasbau.de/actions/runs/38012767842 (build + emulator jobs: success; same numbers as run 38011972795)
 
 ## APK PATH
 

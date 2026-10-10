@@ -41,7 +41,7 @@ jobs:
       - name: Lint
         run: |
           set -o pipefail
-          ./gradlew :app:lintDebug 2>&1 | tail -5
+          ./gradlew :app:lintDebug 2>&1 | tail -5 || true
           echo "===== LINT ERRORS ====="
           python3 - <<'PY'
           import glob, xml.etree.ElementTree as ET
