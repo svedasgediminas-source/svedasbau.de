@@ -21,7 +21,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.DecodeSequenceMode
 import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.decodeToSequence
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
@@ -78,20 +80,22 @@ class XtreamClient(private val client: OkHttpClient, private val json: Json = Xt
             is AppResult.Ok -> XtreamMapper.categories(r.value, playlistId).associate { it.id to it.name }
             is AppResult.Err -> return r
         }
-        return fetch(server, c, "get_live_streams").mapOk { XtreamMapper.liveStreams(it, playlistId, server, cats, ext) }
+        return fetchItems(server, c, "get_live_streams") { index, el ->
+            XtreamMapper.liveStream(index, el, playlistId, server, cats, ext)
+        }
     }
 
     suspend fun movieCategories(c: XtreamCredentials, playlistId: Long): AppResult<List<VodCategory>> =
         withServer(c) { server -> fetch(server, c, "get_vod_categories").mapOk { XtreamMapper.categories(it, playlistId) } }
 
     suspend fun movies(c: XtreamCredentials, playlistId: Long): AppResult<List<Movie>> =
-        withServer(c) { server -> fetch(server, c, "get_vod_streams").mapOk { XtreamMapper.movies(it, playlistId, server) } }
+        withServer(c) { server -> fetchItems(server, c, "get_vod_streams") { _, el -> XtreamMapper.movie(el, playlistId, server) } }
 
     suspend fun seriesCategories(c: XtreamCredentials, playlistId: Long): AppResult<List<VodCategory>> =
         withServer(c) { server -> fetch(server, c, "get_series_categories").mapOk { XtreamMapper.categories(it, playlistId) } }
 
     suspend fun series(c: XtreamCredentials, playlistId: Long): AppResult<List<Series>> =
-        withServer(c) { server -> fetch(server, c, "get_series").mapOk { XtreamMapper.series(it, playlistId) } }
+        withServer(c) { server -> fetchItems(server, c, "get_series") { _, el -> XtreamMapper.seriesItem(el, playlistId) } }
 
     /** [seriesId] is the app id "<playlistId>:s:<xtreamSeriesId>". */
     suspend fun seasons(c: XtreamCredentials, playlistId: Long, seriesId: String): AppResult<List<Season>> {
@@ -165,7 +169,51 @@ class XtreamClient(private val client: OkHttpClient, private val json: Json = Xt
         c: XtreamCredentials,
         action: String?,
         vararg extra: Pair<String, String>,
-    ): AppResult<JsonElement?> = withContext(Dispatchers.IO) {
+    ): AppResult<JsonElement?> = request(server, c, action, *extra) { stream ->
+        json.decodeFromStream(JsonElement.serializer(), stream)
+    }
+
+    /**
+     * Fetches a catalogue list and maps it element by element. Top-level arrays are decoded as a
+     * stream, so a large catalogue never exists as one JSON tree in memory (TV boxes have small
+     * heaps); object-shaped responses fall back to the tree. Unmappable elements are skipped.
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    private suspend fun <T : Any> fetchItems(
+        server: String,
+        c: XtreamCredentials,
+        action: String,
+        map: (index: Int, element: JsonElement) -> T?,
+    ): AppResult<List<T>> = request(server, c, action) { stream ->
+        val out = ArrayList<T>()
+        if (firstSignificantByte(stream) == '['.code) {
+            val seq = json.decodeToSequence(stream, JsonElement.serializer(), DecodeSequenceMode.ARRAY_WRAPPED)
+            for ((index, el) in seq.withIndex()) {
+                if (out.size >= Limits.MAX_CHANNELS_PER_PLAYLIST) break
+                map(index, el)?.let(out::add)
+            }
+        } else {
+            for ((index, el) in json.decodeFromStream(JsonElement.serializer(), stream).items().withIndex()) {
+                if (out.size >= Limits.MAX_CHANNELS_PER_PLAYLIST) break
+                map(index, el)?.let(out::add)
+            }
+        }
+        out
+    }.let { r ->
+        when (r) {
+            is AppResult.Ok -> AppResult.Ok(r.value ?: emptyList())
+            is AppResult.Err -> r
+        }
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    private suspend fun <T> request(
+        server: String,
+        c: XtreamCredentials,
+        action: String?,
+        vararg extra: Pair<String, String>,
+        read: (BufferedInputStream) -> T,
+    ): AppResult<T?> = withContext(Dispatchers.IO) {
         val base = "$server/player_api.php".toHttpUrlOrNull()
             ?: return@withContext AppResult.Err(AppError.InvalidInput("url"))
         val url = base.newBuilder()
@@ -191,7 +239,7 @@ class XtreamClient(private val client: OkHttpClient, private val json: Json = Xt
                 input.use { stream ->
                     when (firstSignificantByte(stream)) {
                         -1 -> AppResult.Ok(null)
-                        '{'.code, '['.code -> AppResult.Ok(json.decodeFromStream(JsonElement.serializer(), stream))
+                        '{'.code, '['.code -> AppResult.Ok(read(stream))
                         else -> AppResult.Err(AppError.Parse("not JSON ($safeUrl)"))
                     }
                 }

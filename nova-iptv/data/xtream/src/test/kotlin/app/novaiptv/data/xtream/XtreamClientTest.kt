@@ -155,6 +155,24 @@ class XtreamClientTest {
     }
 
     @Test
+    fun largeArrayCatalogueIsStreamedAndSkipsBadItems() = runTest {
+        val items = (1..20_000).joinToString(",") { i ->
+            if (i % 1000 == 0) "\"garbage\"" else """{"stream_id":$i,"name":"Movie $i","container_extension":"mkv"}"""
+        }
+        routes["get_vod_streams"] = ok("[$items]")
+        val movies = client.movies(creds(), 7).ok()
+        assertEquals(19_980, movies.size)
+        assertEquals("7:m:1", movies.first().id)
+        assertTrue(movies.none { it.stream.url.contains(pass) })
+    }
+
+    @Test
+    fun objectShapedCatalogueStillMaps() = runTest {
+        routes["get_vod_streams"] = ok("""{"0":{"stream_id":1,"name":"A"},"1":{"stream_id":2,"name":"B"}}""")
+        assertEquals(listOf("1:m:1", "1:m:2"), client.movies(creds(), 1).ok().map { it.id })
+    }
+
+    @Test
     fun truncatedJsonIsParse() = runTest {
         routes["get_vod_streams"] = ok("""[{"stream_id":1,"name":"A" """)
         val e = client.movies(creds(), 1).err()

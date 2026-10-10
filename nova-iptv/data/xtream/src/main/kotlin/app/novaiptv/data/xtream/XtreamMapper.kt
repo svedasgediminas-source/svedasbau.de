@@ -70,41 +70,49 @@ internal object XtreamMapper {
         serverUrl: String,
         categoryNames: Map<String, String>,
         ext: String,
-    ): List<Channel> {
-        val out = ArrayList<Channel>()
-        val format = formatFor(ext)
-        for ((index, el) in root.items().withIndex()) {
-            if (out.size >= Limits.MAX_CHANNELS_PER_PLAYLIST) break
-            val o = el as? JsonObject ?: continue
-            val streamId = safeId(o["stream_id"]) ?: continue
-            val name = name(o["name"]) ?: continue
-            val group = o["category_id"].id()?.let { categoryNames[it] }
-            val archive = o["tv_archive"].bool()
-            val days = o["tv_archive_duration"].int() ?: 0
-            val catchup = if (archive && days > 0) CatchupCapability.Supported(CatchupType.Xtream, days) else CatchupCapability.None
-            out += Channel(
-                id = "$playlistId:$streamId",
-                playlistId = playlistId,
-                number = o["num"].int()?.takeIf { it > 0 } ?: (index + 1),
-                name = name,
-                groupName = group,
-                logoUrl = image(o["stream_icon"]),
-                epgId = o["epg_channel_id"].str(),
-                stream = StreamSource(XtreamUrls.live(serverUrl, streamId, ext), mimeTypeHint = format),
-                catchup = catchup,
-                isAdult = o["is_adult"].bool() || isAdultName(group),
-            )
-        }
-        return out
+    ): List<Channel> = root.items().withIndex()
+        .mapNotNull { (index, el) -> liveStream(index, el, playlistId, serverUrl, categoryNames, ext) }
+        .take(Limits.MAX_CHANNELS_PER_PLAYLIST)
+
+    /** Maps one get_live_streams element; [index] is its position (fallback channel number). */
+    fun liveStream(
+        index: Int,
+        el: JsonElement,
+        playlistId: Long,
+        serverUrl: String,
+        categoryNames: Map<String, String>,
+        ext: String,
+    ): Channel? {
+        val o = el as? JsonObject ?: return null
+        val streamId = safeId(o["stream_id"]) ?: return null
+        val name = name(o["name"]) ?: return null
+        val group = o["category_id"].id()?.let { categoryNames[it] }
+        val archive = o["tv_archive"].bool()
+        val days = o["tv_archive_duration"].int() ?: 0
+        val catchup = if (archive && days > 0) CatchupCapability.Supported(CatchupType.Xtream, days) else CatchupCapability.None
+        return Channel(
+            id = "$playlistId:$streamId",
+            playlistId = playlistId,
+            number = o["num"].int()?.takeIf { it > 0 } ?: (index + 1),
+            name = name,
+            groupName = group,
+            logoUrl = image(o["stream_icon"]),
+            epgId = o["epg_channel_id"].str(),
+            stream = StreamSource(XtreamUrls.live(serverUrl, streamId, ext), mimeTypeHint = formatFor(ext)),
+            catchup = catchup,
+            isAdult = o["is_adult"].bool() || isAdultName(group),
+        )
     }
 
     fun movies(root: JsonElement?, playlistId: Long, serverUrl: String): List<Movie> =
-        root.items().mapNotNull { el ->
-            val o = el as? JsonObject ?: return@mapNotNull null
-            val streamId = safeId(o["stream_id"]) ?: return@mapNotNull null
-            val name = name(o["name"]) ?: name(o["title"]) ?: return@mapNotNull null
+        root.items().mapNotNull { movie(it, playlistId, serverUrl) }.take(Limits.MAX_CHANNELS_PER_PLAYLIST)
+
+    fun movie(el: JsonElement, playlistId: Long, serverUrl: String): Movie? {
+            val o = el as? JsonObject ?: return null
+            val streamId = safeId(o["stream_id"]) ?: return null
+            val name = name(o["name"]) ?: name(o["title"]) ?: return null
             val ext = safeExt(o["container_extension"], "mp4")
-            Movie(
+            return Movie(
                 id = "$playlistId:m:$streamId",
                 playlistId = playlistId,
                 name = name,
@@ -118,14 +126,16 @@ internal object XtreamMapper {
                 durationSeconds = o["duration_secs"].int()?.takeIf { it > 0 },
                 addedAtMillis = secondsToMillis(o["added"]),
             )
-        }.take(Limits.MAX_CHANNELS_PER_PLAYLIST)
+    }
 
     fun series(root: JsonElement?, playlistId: Long): List<Series> =
-        root.items().mapNotNull { el ->
-            val o = el as? JsonObject ?: return@mapNotNull null
-            val seriesId = safeId(o["series_id"]) ?: return@mapNotNull null
-            val name = name(o["name"]) ?: name(o["title"]) ?: return@mapNotNull null
-            Series(
+        root.items().mapNotNull { seriesItem(it, playlistId) }.take(Limits.MAX_CHANNELS_PER_PLAYLIST)
+
+    fun seriesItem(el: JsonElement, playlistId: Long): Series? {
+            val o = el as? JsonObject ?: return null
+            val seriesId = safeId(o["series_id"]) ?: return null
+            val name = name(o["name"]) ?: name(o["title"]) ?: return null
+            return Series(
                 id = "$playlistId:s:$seriesId",
                 playlistId = playlistId,
                 name = name,
@@ -137,7 +147,7 @@ internal object XtreamMapper {
                 rating = o["rating"].double(),
                 addedAtMillis = secondsToMillis(o["last_modified"]),
             )
-        }.take(Limits.MAX_CHANNELS_PER_PLAYLIST)
+    }
 
     /**
      * Parses get_series_info. "episodes" may be an object keyed by season number or a list of
