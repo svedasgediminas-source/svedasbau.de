@@ -34,5 +34,6 @@ UI tests for Movies / Series / Favorites / Home rails).
 - One import runs at a time (repository mutex).
 
 ## Next concrete step
-Push 3ba6128, verify in CI emulator (build, unit tests, crash scan, screenshots), fix failures,
-then review screenshots and polish the design.
+Owner decisions needed (see FINAL_REPORT "NEXT STEPS"): test the APK on a real TV with a real provider,
+confirm the app name (trademark), provide a release keystore and a contact e-mail for the privacy policy.
+Engineering backlog: UI tests for Movies/Series/Favorites/Home rails; remaining items in NEXT_TASKS.md.

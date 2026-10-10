@@ -4,7 +4,7 @@
 
 Built and tested on GitHub Actions (this cloud container cannot download the Android SDK; see
 "Environment" below). Reference run with full results:
-https://github.com/svedasgediminas-source/svedasbau.de/actions/runs/38013915754 (build + emulator jobs: success, lint: 0 errors)
+https://github.com/svedasgediminas-source/svedasbau.de/actions/runs/38022658965 (build + emulator jobs: success, lint: 0 errors, no crash/ANR)
 
 ## APK PATH
 
@@ -17,7 +17,7 @@ Artifact **`nova-iptv-apk`** of the workflow run (Actions → run → Artifacts)
 
 Application id `app.novaiptv.tv`, version 0.1.0-mvp, minSdk 26 (Android 8.0), targetSdk 36, compileSdk 37.
 
-## AGENTS USED: 10 (+ coordinator)
+## AGENTS USED: 20 (+ coordinator)
 
 Parallel subagents with disjoint file ownership; the coordinator owned Gradle, contracts, integration and commits.
 

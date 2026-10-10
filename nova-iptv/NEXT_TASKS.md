@@ -14,24 +14,24 @@ Ordered by priority. "Review" = findings from the internal security/correctness 
    no content (the in-app onboarding already says so).
 
 ## Robustness / performance (review findings still open)
-6. **Stream the M3U import into the database** (review H1, M3U part): the parser still returns the full
+~~**Stream the M3U import into the database** (review H1, M3U part): the parser still returns the full~~ – DONE
    channel list in memory before saving. Give `M3uParser` a per-channel/batch callback and insert in
    transactions of 500. Xtream catalogues are already stream-decoded.
-7. **Paging for huge lists** (review H2, L6): Live TV, Home "Now on TV" and Search load whole channel
+~~**Paging for huge lists** (review H2, L6): Live TV, Home "Now on TV" and Search load whole channel~~ – DONE
    lists (mapping is now off the main thread). Use Room LIMIT queries / Paging 3 for 50k+ channels.
-8. **M3U URLs with embedded credentials** (review M2): `get.php?username=…&password=…` playlist URLs and
+~~**M3U URLs with embedded credentials** (review M2): `get.php?username=…&password=…` playlist URLs and~~ – DONE
    their stream URLs are stored as given (app-private DB, excluded from backup). Offer conversion to an
    Xtream source so credentials go to the encrypted store.
-9. **Run imports in an application scope** (review M3): Back is currently blocked during import; a
+~~**Run imports in an application scope** (review M3): Back is currently blocked during import; a~~ – DONE
    background import with progress notification would be friendlier.
-10. **Share one OkHttpClient** between player and data layer (review L1).
+~~**Share one OkHttpClient** between player and data layer (review L1).~~ – DONE
 11. **Reject XMLTV with internal DTD entities** (review L5, billion-laughs hardening on the platform parser).
-12. **EPG keep-window for catch-up with unknown day count**: EPG retention uses declared days only; channels
+~~**EPG keep-window for catch-up with unknown day count**: EPG retention uses declared days only; channels~~ – DONE
     with catch-up but no day count get 1 day of past EPG although the UI allows 7.
 
 ## Features (P1/P2 from the brief)
 13. Live mini-preview in Live TV (second lightweight player).
-14. EPG reminders; Guide group filter.
-15. Manual EPG channel mapping UI (repository method exists: `EpgRepository.setManualMapping`).
+~~EPG reminders; Guide group filter.~~ – DONE
+~~Manual EPG channel mapping UI (repository method exists: `EpgRepository.setManualMapping`).~~ – DONE
 16. Free/Premium: Google Play Billing (only after the player is proven stable), QR login, profiles,
     multi-view, sync – all P2.
