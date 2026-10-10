@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +25,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -42,6 +43,8 @@ import app.novaiptv.core.designsystem.NovaDimens
 import app.novaiptv.core.designsystem.NovaTextField
 import app.novaiptv.di.LocalAppContainer
 import app.novaiptv.ui.ImportProgressBanner
+import app.novaiptv.ui.NovaDialog
+import app.novaiptv.ui.RequestInitialFocus
 import app.novaiptv.ui.errorMessage
 import app.novaiptv.ui.importSummaryText
 
@@ -67,9 +70,8 @@ fun AddPlaylistScreen(type: String, onDone: () -> Unit, onBack: () -> Unit) {
     val vm: AddPlaylistViewModel = viewModel(key = "add_$type") { AddPlaylistViewModel(container, type) }
     val state by vm.state.collectAsStateWithLifecycle()
     val progress by vm.importProgress.collectAsStateWithLifecycle()
-    // Leaving the screen would cancel the import (it runs in viewModelScope) and discard the
-    // half-imported playlist, so Back is held while an import is running.
-    BackHandler(enabled = state.submitting) {}
+    // Back stays available while importing: the import runs in the app scope (ImportTracker) and
+    // continues in the background; progress remains visible in the Playlists/Settings banner.
     var pickerUnavailable by remember { mutableStateOf(false) }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
@@ -159,7 +161,10 @@ fun AddPlaylistScreen(type: String, onDone: () -> Unit, onBack: () -> Unit) {
 
             state.problem?.let { Text(problemText(it), style = MaterialTheme.typography.bodyLarge, color = NovaColors.Error) }
             state.error?.let { Text(errorMessage(it), style = MaterialTheme.typography.bodyLarge, color = NovaColors.Error) }
-            if (state.submitting) ImportProgressBanner(progress)
+            if (state.submitting) {
+                ImportProgressBanner(progress)
+                Text(stringResource(R.string.playlist_import_background_note), style = MaterialTheme.typography.bodySmall, color = NovaColors.TextMuted)
+            }
 
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -178,6 +183,30 @@ fun AddPlaylistScreen(type: String, onDone: () -> Unit, onBack: () -> Unit) {
         }
         }
     }
+
+    if (state.xtreamOffer != null) {
+        XtreamOfferDialog(onAddAsXtream = vm::acceptXtreamOffer, onKeepM3u = vm::keepAsM3u, onDismiss = vm::dismissXtreamOffer)
+    }
+}
+
+/** Offered when an M3U URL embeds an Xtream login; "Add as Xtream" is focused first. */
+@Composable
+private fun XtreamOfferDialog(onAddAsXtream: () -> Unit, onKeepM3u: () -> Unit, onDismiss: () -> Unit) {
+    val xtreamFocus = remember { FocusRequester() }
+    NovaDialog(title = stringResource(R.string.playlist_xtream_offer_title), onDismiss = onDismiss) {
+        Text(stringResource(R.string.playlist_xtream_offer_message), style = MaterialTheme.typography.bodyLarge, color = NovaColors.TextSecondary)
+        Spacer(Modifier.height(28.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            NovaButton(
+                text = stringResource(R.string.playlist_xtream_offer_accept),
+                onClick = onAddAsXtream,
+                primary = true,
+                modifier = Modifier.focusRequester(xtreamFocus),
+            )
+            NovaButton(text = stringResource(R.string.playlist_xtream_offer_keep), onClick = onKeepM3u)
+        }
+    }
+    RequestInitialFocus(xtreamFocus)
 }
 
 @Composable

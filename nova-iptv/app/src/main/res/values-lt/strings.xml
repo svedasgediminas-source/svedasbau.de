@@ -150,4 +150,9 @@
     <string name="settings_about_version">Versija %1$s</string>
     <string name="settings_about_licenses">Sukurta naudojant atvirojo kodo programinę įrangą: Kotlin, Jetpack Compose, AndroidX Media3, Room, DataStore, OkHttp ir Coil (Apache License 2.0).</string>
     <string name="settings_about_legal">Jūs atsakote už pridedamą turinį ir už tai, kad turite teisę jį žiūrėti.</string>
+    <string name="playlist_import_background_note">Galite išeiti iš šio ekrano – importavimas tęsis fone.</string>
+    <string name="playlist_xtream_offer_title">Rasti tiekėjo prisijungimo duomenys</string>
+    <string name="playlist_xtream_offer_message">Šioje nuorodoje yra tiekėjo prisijungimo duomenys. Pridėti ją kaip Xtream paskyrą? Slaptažodis bus saugomas užšifruotas, be to, gausite filmus ir serialus.</string>
+    <string name="playlist_xtream_offer_accept">Pridėti kaip Xtream</string>
+    <string name="playlist_xtream_offer_keep">Palikti M3U</string>
 </resources>

@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import app.novaiptv.core.common.AppError
 import app.novaiptv.core.common.AppResult
 import app.novaiptv.core.common.UrlValidator
+import app.novaiptv.core.common.XtreamUrlDetector
+import app.novaiptv.core.common.getOrNull
 import app.novaiptv.core.domain.ImportProgress
 import app.novaiptv.core.domain.ImportSummary
 import app.novaiptv.core.model.XtreamCredentials
@@ -13,7 +15,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -34,10 +35,12 @@ data class AddPlaylistUiState(
     val problem: FormProblem? = null,
     val error: AppError? = null,
     val result: ImportSummary? = null,
+    /** Credentials found in an M3U URL; non-null while the "add as Xtream?" dialog is shown. */
+    val xtreamOffer: XtreamCredentials? = null,
 ) {
     // Never expose the password through the generated toString (logs, crash reports).
     override fun toString(): String =
-        "AddPlaylistUiState(name=$name, server=$server, username=***, password=***, submitting=$submitting, problem=$problem, error=$error)"
+        "AddPlaylistUiState(name=$name, server=$server, username=***, password=***, submitting=$submitting, problem=$problem, error=$error, xtreamOffer=${xtreamOffer != null})"
 }
 
 class AddPlaylistViewModel(private val container: AppContainer, val type: String) : ViewModel() {
@@ -57,57 +60,84 @@ class AddPlaylistViewModel(private val container: AppContainer, val type: String
         it.copy(fileUri = uri, fileDisplayName = displayName, name = it.name.ifBlank { displayName.substringBeforeLast('.') }, problem = null)
     }
 
-    fun submit() {
+    fun submit() = submitInternal(allowXtreamOffer = true)
+
+    /** The user accepted converting an M3U link with an embedded login into an Xtream account. */
+    fun acceptXtreamOffer() {
+        val s = _state.value
+        val creds = s.xtreamOffer ?: return
+        if (s.submitting) return
+        _state.update { it.copy(xtreamOffer = null, submitting = true, problem = null, error = null) }
+        val name = s.name.trim().ifEmpty { hostOf(creds.serverUrl) }
+        val playlists = container.playlists
+        startImport(suspend { playlists.addXtream(name = name, credentials = creds) })
+    }
+
+    /** The user wants to keep the link as a plain M3U playlist. */
+    fun keepAsM3u() {
+        _state.update { it.copy(xtreamOffer = null) }
+        submitInternal(allowXtreamOffer = false)
+    }
+
+    /** Dialog dismissed (Back): nothing is imported, the form stays as it is. */
+    fun dismissXtreamOffer() = _state.update { it.copy(xtreamOffer = null) }
+
+    private fun submitInternal(allowXtreamOffer: Boolean) {
         val s = _state.value
         if (s.submitting) return
         val epg = s.epgUrl.trim().ifEmpty { null }
         if (epg != null && UrlValidator.validateSourceUrl(epg) is AppResult.Err) return fail(FormProblem.EpgUrlInvalid)
 
-        _state.update { it.copy(submitting = true, problem = null, error = null) }
-        viewModelScope.launch {
-            val result: AppResult<ImportSummary>? = when (type) {
-                PlaylistType.M3U_FILE -> {
-                    val uri = s.fileUri
-                    if (uri == null) { fail(FormProblem.FileMissing); null } else {
-                        container.playlists.addM3uFile(
-                            name = s.name.trim().ifEmpty { s.fileDisplayName ?: "Playlist" },
-                            uri = uri,
-                            displayName = s.fileDisplayName ?: uri,
-                            epgUrl = epg,
-                        )
-                    }
-                }
-                PlaylistType.XTREAM -> {
-                    val server = UrlValidator.normalizeServerUrl(s.server)
-                    when {
-                        server !is AppResult.Ok -> { fail(FormProblem.ServerInvalid); null }
-                        s.username.isBlank() -> { fail(FormProblem.UsernameMissing); null }
-                        s.password.isEmpty() -> { fail(FormProblem.PasswordMissing); null }
-                        else -> container.playlists.addXtream(
-                            name = s.name.trim().ifEmpty { hostOf(server.value) },
-                            credentials = XtreamCredentials(server.value, s.username.trim(), s.password),
-                        )
-                    }
-                }
-                else -> {
-                    val url = UrlValidator.validateSourceUrl(s.url.trim())
-                    if (url !is AppResult.Ok) { fail(FormProblem.UrlInvalid); null } else {
-                        container.playlists.addM3uUrl(
-                            name = s.name.trim().ifEmpty { hostOf(url.value) },
-                            url = url.value,
-                            epgUrl = epg,
-                        )
-                    }
-                }
+        // Validate locally first; the import itself runs in the app scope (see ImportTracker) so it
+        // keeps going if the user leaves this screen. The lambdas capture only local values, not
+        // the ViewModel.
+        val playlists = container.playlists
+        val importCall: suspend () -> AppResult<ImportSummary> = when (type) {
+            PlaylistType.M3U_FILE -> {
+                val uri = s.fileUri ?: return fail(FormProblem.FileMissing)
+                val name = s.name.trim().ifEmpty { s.fileDisplayName ?: "Playlist" }
+                val displayName = s.fileDisplayName ?: uri
+                suspend { playlists.addM3uFile(name = name, uri = uri, displayName = displayName, epgUrl = epg) }
             }
-            when (result) {
-                null -> Unit
-                is AppResult.Ok -> {
-                    // The first playlist becomes the active one automatically.
-                    val prefs = container.preferences.preferences.first()
-                    if (prefs.activePlaylistId == null) container.preferences.setActivePlaylist(result.value.playlistId)
-                    _state.update { it.copy(submitting = false, result = result.value, password = "") }
+            PlaylistType.XTREAM -> {
+                val serverUrl = UrlValidator.normalizeServerUrl(s.server).getOrNull()
+                    ?: return fail(FormProblem.ServerInvalid)
+                if (s.username.isBlank()) return fail(FormProblem.UsernameMissing)
+                if (s.password.isEmpty()) return fail(FormProblem.PasswordMissing)
+                val name = s.name.trim().ifEmpty { hostOf(serverUrl) }
+                val creds = XtreamCredentials(serverUrl, s.username.trim(), s.password)
+                suspend { playlists.addXtream(name = name, credentials = creds) }
+            }
+            else -> {
+                val url = UrlValidator.validateSourceUrl(s.url.trim())
+                if (url !is AppResult.Ok) return fail(FormProblem.UrlInvalid)
+                if (allowXtreamOffer) {
+                    val detected = XtreamUrlDetector.detect(url.value)
+                    if (detected != null) {
+                        // Ask before storing a provider login in plain text as an M3U URL.
+                        _state.update { it.copy(xtreamOffer = detected, problem = null, error = null) }
+                        return
+                    }
                 }
+                val name = s.name.trim().ifEmpty { hostOf(url.value) }
+                val sourceUrl = url.value
+                suspend { playlists.addM3uUrl(name = name, url = sourceUrl, epgUrl = epg) }
+            }
+        }
+        _state.update { it.copy(submitting = true, problem = null, error = null) }
+        startImport(importCall)
+    }
+
+    /**
+     * Starts [importCall] in the application scope and waits for it here. If the ViewModel is cleared
+     * (user pressed Back), only the waiting stops; the import finishes and the tracker still makes
+     * the first playlist active.
+     */
+    private fun startImport(importCall: suspend () -> AppResult<ImportSummary>) {
+        val pending = container.imports.start(importCall)
+        viewModelScope.launch {
+            when (val result = pending.await()) {
+                is AppResult.Ok -> _state.update { it.copy(submitting = false, result = result.value, password = "") }
                 is AppResult.Err -> _state.update { it.copy(submitting = false, error = result.error) }
             }
         }

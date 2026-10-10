@@ -150,4 +150,9 @@
     <string name="settings_about_version">Версия %1$s</string>
     <string name="settings_about_licenses">Создано с использованием открытого ПО: Kotlin, Jetpack Compose, AndroidX Media3, Room, DataStore, OkHttp и Coil (Apache License 2.0).</string>
     <string name="settings_about_legal">Вы несёте ответственность за добавляемый контент и за наличие права его смотреть.</string>
+    <string name="playlist_import_background_note">Можно покинуть этот экран – импорт продолжится в фоне.</string>
+    <string name="playlist_xtream_offer_title">Обнаружен логин провайдера</string>
+    <string name="playlist_xtream_offer_message">Эта ссылка содержит логин провайдера. Добавить её как аккаунт Xtream? Пароль будет храниться в зашифрованном виде, а также станут доступны фильмы и сериалы.</string>
+    <string name="playlist_xtream_offer_accept">Добавить как Xtream</string>
+    <string name="playlist_xtream_offer_keep">Оставить M3U</string>
 </resources>

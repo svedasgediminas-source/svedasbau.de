@@ -151,4 +151,9 @@
     <string name="settings_about_version">Version %1$s</string>
     <string name="settings_about_licenses">Built with open-source software: Kotlin, Jetpack Compose, AndroidX Media3, Room, DataStore, OkHttp and Coil (Apache License 2.0).</string>
     <string name="settings_about_legal">You are responsible for the content you add and for having the right to watch it.</string>
+    <string name="playlist_import_background_note">You can leave this screen – the import continues in the background.</string>
+    <string name="playlist_xtream_offer_title">Provider login detected</string>
+    <string name="playlist_xtream_offer_message">This link contains a provider login. Add it as an Xtream account instead? Your password will be stored encrypted and you also get movies and series.</string>
+    <string name="playlist_xtream_offer_accept">Add as Xtream</string>
+    <string name="playlist_xtream_offer_keep">Keep as M3U</string>
 </resources>

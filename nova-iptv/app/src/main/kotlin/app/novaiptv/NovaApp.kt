@@ -19,7 +19,10 @@ class NovaApp : Application() {
     lateinit var container: AppContainer
         private set
 
-    /** Process-lifetime scope for work that must survive activity recreation (e.g. language change). */
+    /**
+     * Process-lifetime scope for work that must survive activity recreation (e.g. language change)
+     * or leaving a screen (playlist imports). Shared with [AppContainer.appScope].
+     */
     val appScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val startupRefreshDone = AtomicBoolean(false)
@@ -27,7 +30,7 @@ class NovaApp : Application() {
     override fun onCreate() {
         super.onCreate()
         graph = DataGraph(this)
-        container = AppContainerImpl(graph)
+        container = AppContainerImpl(graph, appScope)
         // Posters and logos share the app's OkHttpClient (connection pool, timeouts, user agent).
         installNovaImageLoader { graph.okHttpClient }
     }

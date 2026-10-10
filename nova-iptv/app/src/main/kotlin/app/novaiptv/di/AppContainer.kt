@@ -11,6 +11,7 @@ import app.novaiptv.core.domain.PreferencesRepository
 import app.novaiptv.core.domain.StreamResolver
 import app.novaiptv.core.domain.VodRepository
 import app.novaiptv.core.common.Clock
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * Manual dependency container (no DI framework in the MVP). Created once in NovaApp and exposed
@@ -28,6 +29,12 @@ interface AppContainer {
     val streamResolver: StreamResolver
     val catchup: CatchupResolver
     val clock: Clock
+
+    /** Process-lifetime scope (SupervisorJob + Dispatchers.Default) for work that must outlive screens. */
+    val appScope: CoroutineScope
+
+    /** Runs playlist imports in [appScope] so leaving the add screen does not cancel them. */
+    val imports: ImportTracker
 }
 
 val LocalAppContainer = staticCompositionLocalOf<AppContainer> { error("AppContainer not provided") }
