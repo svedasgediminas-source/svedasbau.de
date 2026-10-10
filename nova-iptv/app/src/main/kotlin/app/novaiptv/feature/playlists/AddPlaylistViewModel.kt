@@ -70,7 +70,17 @@ class AddPlaylistViewModel(private val container: AppContainer, val type: String
         _state.update { it.copy(xtreamOffer = null, submitting = true, problem = null, error = null) }
         val name = s.name.trim().ifEmpty { hostOf(creds.serverUrl) }
         val playlists = container.playlists
-        startImport(suspend { playlists.addXtream(name = name, credentials = creds) })
+        // Keep a custom EPG URL typed on the M3U form; it replaces the portal's XMLTV feed.
+        val epg = s.epgUrl.trim().ifEmpty { null }
+        startImport(
+            suspend {
+                val result = playlists.addXtream(name = name, credentials = creds)
+                if (epg != null && result is AppResult.Ok) {
+                    playlists.setEpgUrls(result.value.playlistId, listOf(epg)) // also schedules the EPG refresh
+                }
+                result
+            },
+        )
     }
 
     /** The user wants to keep the link as a plain M3U playlist. */
