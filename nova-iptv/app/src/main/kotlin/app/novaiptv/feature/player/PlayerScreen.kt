@@ -116,7 +116,7 @@ fun PlayerScreen(args: PlayerArgs, onBack: () -> Unit) {
         if (!target.tryRequestFocus()) rootFocus.tryRequestFocus()
     }
 
-    BackHandler {
+    fun handleBack() {
         when {
             ui.numberEntry != null -> viewModel.cancelNumberEntry()
             panelOpen -> panelOpen = false
@@ -125,11 +125,21 @@ fun PlayerScreen(args: PlayerArgs, onBack: () -> Unit) {
         }
     }
 
+    BackHandler { handleBack() }
+
     fun onKey(event: KeyEvent): Boolean {
         val code = event.key.nativeKeyCode
         val down = event.type == KeyEventType.KeyDown
         val up = event.type == KeyEventType.KeyUp
         val repeat = event.nativeKeyEvent.repeatCount
+
+        // BACK is handled here, before Compose turns an unconsumed BACK into a focus "exit" move:
+        // with a button focused (track panel, controls, error panel) the first press only moved
+        // focus to the root and the user had to press BACK twice.
+        if (code == AndroidKeyEvent.KEYCODE_BACK) {
+            if (up && !event.nativeKeyEvent.isCanceled) handleBack()
+            return true
+        }
         val controlsShown = panelOpen || hasError || overlay == OverlayMode.Controls
         if (down && overlay != OverlayMode.Hidden) interaction++
 

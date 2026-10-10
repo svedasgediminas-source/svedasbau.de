@@ -69,9 +69,13 @@ class GuideScreenTest {
         }
         // The cursor moved to the first row of the group: its live programme is in the info panel.
         ui.waitForText(inGroup.first().nowTitle!!)
-        // A channel without guide data still gets a row.
-        val noEpg = inGroup.first { it.epgId == null }
+        // DOWN moves the cursor through the group's rows (the grid scrolls); a channel without
+        // guide data still gets a row that says there is no programme information.
+        val noEpg = inGroup.last()
+        assertEquals(null, noEpg.epgId)
+        repeat(inGroup.size - 1) { ui.press(KeyEvent.KEYCODE_DPAD_DOWN) }
         ui.waitForText(noEpg.name)
+        ui.waitForText(ui.string(R.string.guide_no_programme))
         TestData.log("ui guide: chip '$group' -> rows ${inGroup.joinToString { it.name }}, other groups hidden")
     }
 

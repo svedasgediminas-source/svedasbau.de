@@ -65,7 +65,7 @@ class NovaUiDriver(private val rule: MainRule) {
                     node.config.getOrNull(SemanticsProperties.ContentDescription).orEmpty()
             }
         val focused = texts(isFocused()).joinToString("|")
-        val all = texts(hasText("", substring = true)).distinct().take(30).joinToString("|")
+        val all = texts(hasText("", substring = true)).distinct().take(60).joinToString("|")
         "focused=[$focused] screen=[$all]"
     }.getOrElse { "context unavailable: ${it.javaClass.simpleName}" }
 
