@@ -4,7 +4,7 @@
 
 Built and tested on GitHub Actions (this cloud container cannot download the Android SDK; see
 "Environment" below). Reference run with full results:
-https://github.com/svedasgediminas-source/svedasbau.de/actions/runs/38012767842 (build + emulator jobs: success; same numbers as run 38011972795)
+https://github.com/svedasgediminas-source/svedasbau.de/actions/runs/38013915754 (build + emulator jobs: success, lint: 0 errors)
 
 ## APK PATH
 
@@ -54,7 +54,7 @@ Parallel subagents with disjoint file ownership; the coordinator owned Gradle, c
 | Languages | DONE – NOT TESTED | en / lt / de / ru strings complete; switching not UI-tested |
 | Remote control | PARTIAL | D-pad sequences in emulator without crash; NOT TESTED on a physical TV |
 
-## TEST RESULTS (run 38011972795, real numbers)
+## TEST RESULTS (runs 38011972795 and 38013915754, real numbers)
 
 | Suite | Run | Passed | Failed | Not run |
 |---|---|---|---|---|
@@ -85,7 +85,7 @@ Movies / Series / Search, performance profiling on a low-RAM device, language-sw
 - M3U playlist URLs that embed username/password are stored as given (app-private, excluded from backup);
   only Xtream logins go to the encrypted store.
 - Back is blocked while an import runs (instead of continuing in the background).
-- Lint: one remaining error to triage (the second one was fixed); see the latest CI "Lint" step.
+- Lint: 0 errors (both NonObservableLocale errors fixed); warnings not yet triaged.
 - Release APK is signed with the debug key.
 Full list with priorities: `NEXT_TASKS.md`.
 
