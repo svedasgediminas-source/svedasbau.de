@@ -72,11 +72,19 @@ class AddPlaylistViewModel(private val container: AppContainer, val type: String
         val playlists = container.playlists
         // Keep a custom EPG URL typed on the M3U form; it replaces the portal's XMLTV feed.
         val epg = s.epgUrl.trim().ifEmpty { null }
+        val m3uUrl = s.url.trim()
         startImport(
             suspend {
-                val result = playlists.addXtream(name = name, credentials = creds)
-                if (epg != null && result is AppResult.Ok) {
-                    playlists.setEpgUrls(result.value.playlistId, listOf(epg)) // also schedules the EPG refresh
+                val xtream = playlists.addXtream(name = name, credentials = creds)
+                // Many panels serve get.php without the Xtream API (player_api.php answers 404 or
+                // non-JSON). Then the link still works as a plain M3U playlist: fall back to that.
+                val result = if (xtream is AppResult.Err && xtream.error.meansNoXtreamApi()) {
+                    playlists.addM3uUrl(name = name, url = m3uUrl, epgUrl = epg)
+                } else {
+                    xtream
+                }
+                if (epg != null && xtream is AppResult.Ok) {
+                    playlists.setEpgUrls(xtream.value.playlistId, listOf(epg)) // also schedules the EPG refresh
                 }
                 result
             },
@@ -158,3 +166,6 @@ class AddPlaylistViewModel(private val container: AppContainer, val type: String
     private fun hostOf(url: String): String =
         runCatching { java.net.URI(url).host }.getOrNull()?.removePrefix("www.") ?: "Playlist"
 }
+
+/** Errors that mean the server has no (working) Xtream API, as opposed to a bad login or no network. */
+internal fun AppError.meansNoXtreamApi(): Boolean = this is AppError.Http || this is AppError.Parse
