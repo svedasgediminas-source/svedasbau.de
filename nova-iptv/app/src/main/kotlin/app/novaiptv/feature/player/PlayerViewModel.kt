@@ -22,6 +22,8 @@ import app.novaiptv.core.model.WatchHistory
 import app.novaiptv.core.player.LiveTimeshift
 import app.novaiptv.core.player.NovaPlayer
 import app.novaiptv.core.player.SeekAccelerator
+import app.novaiptv.core.player.StreamUserAgents
+import app.novaiptv.core.model.StreamSource
 import app.novaiptv.core.player.ResumePolicy
 import app.novaiptv.di.AppContainer
 import kotlinx.coroutines.CancellationException
@@ -34,6 +36,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
@@ -258,7 +261,7 @@ class PlayerViewModel(
             )
         }
         val stream = deps.streamResolver.resolve(channel.playlistId, channel.stream)
-        novaPlayer.play(stream, 0, isLive = true)
+        playStream(stream, 0, isLive = true)
         saveHistory()
         startEpg(channel)
     }
@@ -329,7 +332,7 @@ class PlayerViewModel(
             )
         }
         val stream = deps.streamResolver.resolve(channel.playlistId, archived)
-        novaPlayer.play(stream, 0, isLive = false)
+        playStream(stream, 0, isLive = false)
     }
 
     private suspend fun loadMovie(movieId: String) {
@@ -356,7 +359,7 @@ class PlayerViewModel(
             )
         }
         val stream = deps.streamResolver.resolve(movie.playlistId, movie.stream)
-        novaPlayer.play(stream, start, isLive = false)
+        playStream(stream, start, isLive = false)
     }
 
     private suspend fun loadEpisode(episodeId: String) {
@@ -398,7 +401,25 @@ class PlayerViewModel(
             )
         }
         val stream = deps.streamResolver.resolve(playlistId, episode.stream)
-        novaPlayer.play(stream, start, isLive = false)
+        playStream(stream, start, isLive = false)
+    }
+
+    /**
+     * Applies the "Stream User-Agent" setting (read fresh, so a change in Settings counts on the
+     * next start) and plays. Streams that declare their own agent keep it (see NovaPlayer).
+     */
+    private suspend fun playStream(stream: StreamSource, startPositionMillis: Long, isLive: Boolean) {
+        val prefs = try {
+            deps.preferences.preferences.first()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        }
+        if (prefs != null) {
+            novaPlayer.setUserAgentCandidates(StreamUserAgents.candidates(prefs.streamUserAgent, prefs.customUserAgent))
+        }
+        novaPlayer.play(stream, startPositionMillis, isLive = isLive)
     }
 
     private suspend fun resumePosition(type: ContentType, id: String, fallbackDurationMillis: Long): Long {
@@ -677,7 +698,7 @@ class PlayerViewModel(
                 resumedFromMillis = null,
             )
         }
-        novaPlayer.play(stream, LiveTimeshift.startPositionMillis(target, program.startMillis), isLive = false)
+        playStream(stream, LiveTimeshift.startPositionMillis(target, program.startMillis), isLive = false)
         if (epgJob?.isActive != true) startEpg(channel)
         return true
     }

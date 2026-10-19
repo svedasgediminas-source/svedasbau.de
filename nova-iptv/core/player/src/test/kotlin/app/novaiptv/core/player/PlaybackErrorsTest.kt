@@ -73,4 +73,16 @@ class PlaybackErrorsTest {
         assertTrue(PlaybackErrors.isBehindLiveWindow(PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW))
         assertFalse(PlaybackErrors.isBehindLiveWindow(PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS))
     }
+
+    @Test
+    fun hintHasCodeHttpStatusAndFormatButNoUrl() {
+        assertEquals(
+            "ERROR_CODE_IO_BAD_HTTP_STATUS · HTTP 403 · TS",
+            PlaybackErrors.hint("ERROR_CODE_IO_BAD_HTTP_STATUS", 403, "TS"),
+        )
+        assertEquals("NO_DATA_TIMEOUT · HLS", PlaybackErrors.hint("NO_DATA_TIMEOUT", null, "HLS"))
+        // Anything that is not a plain code name (e.g. a URL) is dropped.
+        assertEquals("HTTP 404", PlaybackErrors.hint("http://u:p@host/x", 404, null))
+        assertEquals(null, PlaybackErrors.hint(null, null, null))
+    }
 }

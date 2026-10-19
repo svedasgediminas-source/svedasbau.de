@@ -15,6 +15,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import app.novaiptv.core.domain.PreferencesRepository
 import app.novaiptv.core.model.AppLanguage
 import app.novaiptv.core.model.AspectRatioMode
+import app.novaiptv.core.model.StreamUserAgent
 import app.novaiptv.core.model.UserPreferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -54,6 +55,8 @@ class PreferencesRepositoryImpl(context: Context) : PreferencesRepository {
         val AUTO_REFRESH = booleanPreferencesKey("auto_refresh_on_start")
         val EPG_SHIFT = intPreferencesKey("epg_time_shift_minutes")
         val BUFFER = intPreferencesKey("buffer_millis")
+        val STREAM_UA = stringPreferencesKey("stream_user_agent")
+        val CUSTOM_UA = stringPreferencesKey("custom_user_agent")
     }
 
     private fun read(p: Preferences): UserPreferences {
@@ -71,6 +74,8 @@ class PreferencesRepositoryImpl(context: Context) : PreferencesRepository {
             autoRefreshOnStart = p[Keys.AUTO_REFRESH] ?: d.autoRefreshOnStart,
             epgTimeShiftMinutes = p[Keys.EPG_SHIFT] ?: d.epgTimeShiftMinutes,
             bufferMillis = p[Keys.BUFFER] ?: d.bufferMillis,
+            streamUserAgent = p[Keys.STREAM_UA]?.let { name -> StreamUserAgent.entries.firstOrNull { it.name == name } } ?: d.streamUserAgent,
+            customUserAgent = p[Keys.CUSTOM_UA] ?: d.customUserAgent,
         )
     }
 
@@ -90,5 +95,7 @@ class PreferencesRepositoryImpl(context: Context) : PreferencesRepository {
         p[Keys.AUTO_REFRESH] = u.autoRefreshOnStart
         p[Keys.EPG_SHIFT] = u.epgTimeShiftMinutes
         p[Keys.BUFFER] = u.bufferMillis
+        p[Keys.STREAM_UA] = u.streamUserAgent.name
+        p[Keys.CUSTOM_UA] = u.customUserAgent
     }
 }

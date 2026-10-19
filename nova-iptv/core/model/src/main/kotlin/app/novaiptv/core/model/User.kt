@@ -33,6 +33,14 @@ enum class AppLanguage(val tag: String) { System(""), English("en"), Lithuanian(
 
 enum class AspectRatioMode { Fit, Fill, Zoom, Stretch }
 
+/**
+ * User-Agent sent with stream requests when the stream itself does not specify one
+ * (#EXTVLCOPT / http-user-agent). Some providers only serve known players.
+ * [Auto] starts with the app agent and switches to a widely accepted player agent when the
+ * server refuses (401/403) or sends no data.
+ */
+enum class StreamUserAgent { Auto, AppDefault, Vlc, ExoPlayer, Custom }
+
 data class UserPreferences(
     val language: AppLanguage = AppLanguage.System,
     val activePlaylistId: Long? = null,
@@ -46,6 +54,9 @@ data class UserPreferences(
     val autoRefreshOnStart: Boolean = true,
     val epgTimeShiftMinutes: Int = 0,
     val bufferMillis: Int = 15_000,
+    val streamUserAgent: StreamUserAgent = StreamUserAgent.Auto,
+    /** Used when [streamUserAgent] is [StreamUserAgent.Custom]; blank falls back to the app default. */
+    val customUserAgent: String = "",
 )
 
 /** Monetisation tier. Billing is not implemented in the MVP; everything runs as [Free] with limits relaxed. */

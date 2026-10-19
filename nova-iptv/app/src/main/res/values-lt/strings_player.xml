@@ -14,6 +14,8 @@
     <string name="player_error_catchup_unavailable">Ši laida archyve nepasiekiama.</string>
     <string name="player_error_resolve">Nepavyko atidaryti srauto.</string>
     <string name="player_retry">Bandyti dar kartą</string>
+    <string name="player_error_ua_tip">Patarimas: jei tai kartojasi, pabandykite Nustatymai → Grotuvas → Srauto User-Agent: VLC.</string>
+    <string name="player_error_details">Techninė informacija: %1$s</string>
     <string name="player_back">Atgal</string>
     <string name="player_settings">Nustatymai</string>
     <string name="player_play">Leisti</string>

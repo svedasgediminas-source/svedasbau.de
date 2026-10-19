@@ -132,6 +132,14 @@
     <string name="settings_subtitle_large">Groß</string>
     <string name="settings_subtitle_xlarge">Sehr groß</string>
     <string name="settings_player_channel_numbers">Sendernummern anzeigen</string>
+    <string name="settings_player_user_agent">Stream-User-Agent</string>
+    <string name="settings_ua_auto">Automatisch (empfohlen)</string>
+    <string name="settings_ua_app">Nova IPTV</string>
+    <string name="settings_ua_vlc">VLC</string>
+    <string name="settings_ua_exoplayer">ExoPlayer-Standard</string>
+    <string name="settings_ua_custom">Benutzerdefiniert…</string>
+    <string name="settings_ua_custom_field">User-Agent</string>
+    <string name="settings_player_user_agent_note">Manche Anbieter liefern Video nur an bekannte Player. Wenn Sender ständig puffern oder fehlschlagen, VLC ausprobieren.</string>
     <string name="settings_language_system">Systemsprache</string>
     <string name="settings_data_refresh_all">Alle Playlists aktualisieren</string>
     <string name="settings_data_refreshed">%1$d Playlists aktualisiert.</string>

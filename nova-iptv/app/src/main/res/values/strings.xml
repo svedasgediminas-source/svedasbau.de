@@ -133,6 +133,14 @@
     <string name="settings_subtitle_large">Large</string>
     <string name="settings_subtitle_xlarge">Extra large</string>
     <string name="settings_player_channel_numbers">Show channel numbers</string>
+    <string name="settings_player_user_agent">Stream User-Agent</string>
+    <string name="settings_ua_auto">Automatic (recommended)</string>
+    <string name="settings_ua_app">Nova IPTV</string>
+    <string name="settings_ua_vlc">VLC</string>
+    <string name="settings_ua_exoplayer">ExoPlayer default</string>
+    <string name="settings_ua_custom">Custom…</string>
+    <string name="settings_ua_custom_field">User-Agent</string>
+    <string name="settings_player_user_agent_note">Some providers only serve video to known players. If channels keep buffering or fail, try VLC.</string>
     <string name="settings_language_system">System default</string>
     <string name="settings_data_refresh_all">Refresh all playlists</string>
     <string name="settings_data_refreshed">%1$d playlists updated.</string>

@@ -132,6 +132,14 @@
     <string name="settings_subtitle_large">Dideli</string>
     <string name="settings_subtitle_xlarge">Labai dideli</string>
     <string name="settings_player_channel_numbers">Rodyti kanalų numerius</string>
+    <string name="settings_player_user_agent">Srauto User-Agent</string>
+    <string name="settings_ua_auto">Automatiškai (rekomenduojama)</string>
+    <string name="settings_ua_app">Nova IPTV</string>
+    <string name="settings_ua_vlc">VLC</string>
+    <string name="settings_ua_exoplayer">ExoPlayer numatytasis</string>
+    <string name="settings_ua_custom">Savas…</string>
+    <string name="settings_ua_custom_field">User-Agent</string>
+    <string name="settings_player_user_agent_note">Kai kurie tiekėjai vaizdą siunčia tik žinomiems grotuvams. Jei kanalai nuolat kraunasi arba neveikia, pabandykite VLC.</string>
     <string name="settings_language_system">Kaip sistemoje</string>
     <string name="settings_data_refresh_all">Atnaujinti visus grojaraščius</string>
     <string name="settings_data_refreshed">Atnaujinta grojaraščių: %1$d.</string>

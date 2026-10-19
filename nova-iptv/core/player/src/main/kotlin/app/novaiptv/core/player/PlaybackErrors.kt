@@ -45,6 +45,20 @@ object PlaybackErrors {
     fun isBehindLiveWindow(errorCode: Int): Boolean =
         errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW
 
+    /**
+     * Short technical hint for the error screen, e.g. "ERROR_CODE_IO_BAD_HTTP_STATUS · HTTP 403 · TS".
+     * Built only from the error-code name, the HTTP status and the format tag: never a URL
+     * (stream URLs may hold credentials).
+     */
+    fun hint(errorCodeName: String?, httpCode: Int? = null, formatLabel: String? = null): String? {
+        val parts = listOfNotNull(
+            errorCodeName?.takeIf { it.isNotBlank() && it.all { c -> c.isLetterOrDigit() || c == '_' } },
+            httpCode?.takeIf { it in 100..999 }?.let { "HTTP $it" },
+            formatLabel?.takeIf { it.isNotBlank() && it.length <= 8 },
+        )
+        return parts.takeIf { it.isNotEmpty() }?.joinToString(" · ")
+    }
+
     private val IO_RANGE = 2000..2999
     private val PARSING_RANGE = 3000..3999
     private val DECODER_RANGE = 4000..4999

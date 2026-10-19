@@ -154,8 +154,12 @@ internal fun PlayerOverlay(
         }
 
         if (errorText != null) {
+            val playbackError = (playback as? PlaybackState.Error)?.takeIf { ui.contentError == null }
             ErrorBox(
                 message = errorText,
+                // Error-code hint (no URL, never credentials) so users can report what fails.
+                details = playbackError?.message?.let { stringResource(R.string.player_error_details, it) },
+                tip = playbackError?.takeIf { it.kind.suggestsUserAgent() }?.let { stringResource(R.string.player_error_ua_tip) },
                 focus = errorFocus,
                 onRetry = onRetry,
                 onBack = onBack,
@@ -522,6 +526,8 @@ private fun Badge(text: String, color: Color) {
 @Composable
 private fun ErrorBox(
     message: String,
+    details: String?,
+    tip: String?,
     focus: FocusRequester,
     onRetry: () -> Unit,
     onBack: () -> Unit,
@@ -542,6 +548,14 @@ private fun ErrorBox(
         )
         Spacer(Modifier.height(12.dp))
         Text(message, style = MaterialTheme.typography.bodyLarge, color = NovaColors.TextPrimary)
+        if (tip != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(tip, style = MaterialTheme.typography.bodyMedium, color = NovaColors.TextSecondary)
+        }
+        if (details != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(details, style = MaterialTheme.typography.labelSmall, color = NovaColors.TextSecondary)
+        }
         Spacer(Modifier.height(24.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             NovaButton(
@@ -677,6 +691,10 @@ private fun PlayerContentError.messageRes(): Int = when (this) {
     PlayerContentError.CatchupUnavailable -> R.string.player_error_catchup_unavailable
     PlayerContentError.StreamFailed -> R.string.player_error_resolve
 }
+
+/** Failures that a different "Stream User-Agent" may fix (provider refusing / not sending data). */
+private fun PlaybackErrorKind.suggestsUserAgent(): Boolean =
+    this == PlaybackErrorKind.Network || this == PlaybackErrorKind.SourceUnavailable || this == PlaybackErrorKind.UnsupportedFormat
 
 private fun PlaybackErrorKind.messageRes(): Int = when (this) {
     PlaybackErrorKind.Network -> R.string.player_error_network

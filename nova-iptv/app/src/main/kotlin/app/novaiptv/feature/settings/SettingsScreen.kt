@@ -52,7 +52,9 @@ import app.novaiptv.core.designsystem.NovaListItem
 import app.novaiptv.core.designsystem.SectionHeader
 import app.novaiptv.core.model.AppLanguage
 import app.novaiptv.core.model.AspectRatioMode
+import app.novaiptv.core.model.StreamUserAgent
 import app.novaiptv.core.model.UserPreferences
+import app.novaiptv.core.player.StreamUserAgents
 import app.novaiptv.di.LocalAppContainer
 import app.novaiptv.feature.playlists.PlaylistType
 import app.novaiptv.feature.playlists.playlistSourceLabel
@@ -60,6 +62,7 @@ import app.novaiptv.feature.playlists.playlistTypeTitle
 import app.novaiptv.ui.ChoiceDialog
 import app.novaiptv.ui.ConfirmDialog
 import app.novaiptv.ui.ImportProgressBanner
+import app.novaiptv.ui.TextInputDialog
 import app.novaiptv.ui.errorMessage
 import app.novaiptv.ui.playlistErrorMessage
 
@@ -75,7 +78,7 @@ enum class SettingsCategory(val titleRes: Int, val icon: ImageVector) {
     About(R.string.settings_cat_about, Icons.Filled.Info),
 }
 
-private enum class SettingsDialog { TimeShift, Aspect, Audio, SubtitleSize, ClearHistory }
+private enum class SettingsDialog { TimeShift, Aspect, Audio, SubtitleSize, UserAgent, CustomUserAgent, ClearHistory }
 
 /** Audio language choices: null = automatic (stream default). Labels are endonyms. */
 private val AudioLanguages: List<Pair<String?, String>> = listOf(
@@ -180,6 +183,7 @@ fun SettingsScreen(onOpenPlaylists: () -> Unit, onAddPlaylist: (type: String) ->
                         onAspect = { dialog = SettingsDialog.Aspect },
                         onAudio = { dialog = SettingsDialog.Audio },
                         onSubtitleSize = { dialog = SettingsDialog.SubtitleSize },
+                        onUserAgent = { dialog = SettingsDialog.UserAgent },
                         onUpdate = vm::update,
                     )
                     SettingsCategory.Language -> languageSection(prefs.language, vm::setLanguage)
@@ -228,6 +232,35 @@ fun SettingsScreen(onOpenPlaylists: () -> Unit, onAddPlaylist: (type: String) ->
             onSelect = { i -> dialog = null; vm.update { it.copy(subtitleScale = SubtitleScales[i]) } },
             onDismiss = { dialog = null },
         )
+        SettingsDialog.UserAgent -> ChoiceDialog(
+            title = stringResource(R.string.settings_player_user_agent),
+            options = StreamUserAgent.entries.map { userAgentLabel(it) },
+            selectedIndex = StreamUserAgent.entries.indexOf(prefs.streamUserAgent),
+            onSelect = { i ->
+                val mode = StreamUserAgent.entries[i]
+                if (mode == StreamUserAgent.Custom) {
+                    dialog = SettingsDialog.CustomUserAgent
+                } else {
+                    dialog = null
+                    vm.update { it.copy(streamUserAgent = mode) }
+                }
+            },
+            onDismiss = { dialog = null },
+        )
+        SettingsDialog.CustomUserAgent -> TextInputDialog(
+            title = stringResource(R.string.settings_ua_custom),
+            label = stringResource(R.string.settings_ua_custom_field),
+            initialValue = prefs.customUserAgent,
+            onConfirm = { value ->
+                dialog = null
+                val clean = StreamUserAgents.sanitizeCustom(value)
+                vm.update {
+                    if (clean == null) it.copy(streamUserAgent = StreamUserAgent.Auto, customUserAgent = "")
+                    else it.copy(streamUserAgent = StreamUserAgent.Custom, customUserAgent = clean)
+                }
+            },
+            onDismiss = { dialog = null },
+        )
         SettingsDialog.ClearHistory -> ConfirmDialog(
             title = stringResource(R.string.settings_data_clear_history),
             message = stringResource(R.string.settings_data_clear_history_confirm),
@@ -269,6 +302,17 @@ private fun aspectLabel(mode: AspectRatioMode): String = stringResource(
         AspectRatioMode.Fill -> R.string.settings_aspect_fill
         AspectRatioMode.Zoom -> R.string.settings_aspect_zoom
         AspectRatioMode.Stretch -> R.string.settings_aspect_stretch
+    },
+)
+
+@Composable
+private fun userAgentLabel(mode: StreamUserAgent): String = stringResource(
+    when (mode) {
+        StreamUserAgent.Auto -> R.string.settings_ua_auto
+        StreamUserAgent.AppDefault -> R.string.settings_ua_app
+        StreamUserAgent.Vlc -> R.string.settings_ua_vlc
+        StreamUserAgent.ExoPlayer -> R.string.settings_ua_exoplayer
+        StreamUserAgent.Custom -> R.string.settings_ua_custom
     },
 )
 
@@ -352,6 +396,7 @@ private fun LazyListScope.playerSection(
     onAspect: () -> Unit,
     onAudio: () -> Unit,
     onSubtitleSize: () -> Unit,
+    onUserAgent: () -> Unit,
     onUpdate: ((UserPreferences) -> UserPreferences) -> Unit,
 ) {
     item(key = "pl_aspect") {
@@ -386,6 +431,18 @@ private fun LazyListScope.playerSection(
             onClick = { onUpdate { it.copy(showChannelNumbers = !it.showChannelNumbers) } },
         )
     }
+    item(key = "pl_user_agent") {
+        NovaListItem(
+            headline = stringResource(R.string.settings_player_user_agent),
+            trailing = if (prefs.streamUserAgent == StreamUserAgent.Custom && prefs.customUserAgent.isNotBlank()) {
+                prefs.customUserAgent.take(24)
+            } else {
+                userAgentLabel(prefs.streamUserAgent)
+            },
+            onClick = onUserAgent,
+        )
+    }
+    item(key = "pl_user_agent_note") { NoteText(stringResource(R.string.settings_player_user_agent_note)) }
 }
 
 private fun LazyListScope.languageSection(current: AppLanguage, onSelect: (AppLanguage) -> Unit) {

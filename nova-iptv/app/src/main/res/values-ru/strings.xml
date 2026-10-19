@@ -132,6 +132,14 @@
     <string name="settings_subtitle_large">Крупные</string>
     <string name="settings_subtitle_xlarge">Очень крупные</string>
     <string name="settings_player_channel_numbers">Показывать номера каналов</string>
+    <string name="settings_player_user_agent">User-Agent потока</string>
+    <string name="settings_ua_auto">Автоматически (рекомендуется)</string>
+    <string name="settings_ua_app">Nova IPTV</string>
+    <string name="settings_ua_vlc">VLC</string>
+    <string name="settings_ua_exoplayer">По умолчанию ExoPlayer</string>
+    <string name="settings_ua_custom">Свой…</string>
+    <string name="settings_ua_custom_field">User-Agent</string>
+    <string name="settings_player_user_agent_note">Некоторые провайдеры отдают видео только известным плеерам. Если каналы постоянно буферизуются или не работают, попробуйте VLC.</string>
     <string name="settings_language_system">Как в системе</string>
     <string name="settings_data_refresh_all">Обновить все плейлисты</string>
     <string name="settings_data_refreshed">Обновлено плейлистов: %1$d.</string>
