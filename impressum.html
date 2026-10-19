@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+if (location.protocol === 'http:' && location.hostname.endsWith('svedasbau.de')) {
+  location.replace('https://' + location.host + location.pathname + location.search + location.hash);
+}
+</script>
 <title>Impressum | SVEDASBAU</title>
 <meta name="robots" content="noindex, follow">
 <link rel="canonical" href="https://svedasbau.de/impressum.html">
