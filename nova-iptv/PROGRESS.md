@@ -11,6 +11,8 @@
 - Archive: 14-day default for declared catch-up without a day count, guide up to 30 days back,
   EPG kept for each channel's archive window. Playback speed 0.5x–2x, accelerated seeking,
   live rewind through the provider's archive (only channels that declare catch-up).
+- Playback robustness for real providers: format probe, bounded recovery ladder, buffering watchdog,
+  "Stream User-Agent" setting (Automatic default), error hints (run 39220237925, see FINAL_REPORT).
 - CI: build + unit tests + lint + Android TV emulator job (instrumented tests, demo playlist,
   screenshots committed to `docs/screenshots/`).
 
@@ -19,6 +21,8 @@ See `NEXT_TASKS.md` (real-device test, trademark check, privacy policy, release 
 UI tests for Movies / Series / Favorites / Home rails).
 
 ## Latest test results
+- Run 39220237925 (green): 319 unit tests, 31 instrumented tests (app 26, core/data 5), no crash/ANR.
+  New: PlaybackRobustnessTest (5 tests), StreamProbeTest, PlaybackRecoveryTest, StreamUserAgentsTest.
 - Run 38021873025 (green): 304 unit tests, 26 instrumented tests on the Android TV emulator
   (app 21, core/data 5), no FATAL EXCEPTION / ANR. New Compose UI tests: LiveTvScreenTest,
   GuideScreenTest, SearchScreenTest, PlaylistsSettingsTest, PlayerOverlayTest (seeded via
@@ -34,6 +38,8 @@ UI tests for Movies / Series / Favorites / Home rails).
 - One import runs at a time (repository mutex).
 
 ## Next concrete step
+Have the reporting user install the latest APK and play an M3U channel; if it still fails, collect the
+hint shown on the error screen (NEXT_TASKS 17).
 Owner decisions needed (see FINAL_REPORT "NEXT STEPS"): test the APK on a real TV with a real provider,
 confirm the app name (trademark), provide a release keystore and a contact e-mail for the privacy policy.
 Engineering backlog: UI tests for Movies/Series/Favorites/Home rails; remaining items in NEXT_TASKS.md.

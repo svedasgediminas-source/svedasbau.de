@@ -85,6 +85,30 @@ Favorites screen / Home content rails, performance profiling on a low-RAM device
 8. Favourites survive restart – **yes**. 9. Invalid data does not crash – **yes** (garbage/empty/404/invalid URLs).
 10. No known critical bugs in the main flow – **none known**; open items below.
 
+## PLAYBACK ROBUSTNESS (2026-10-19, real-provider report: list imports, video does not play / buffers forever)
+
+Green run: https://github.com/svedasgediminas-source/svedasbau.de/actions/runs/39220237925 –
+319 unit tests (core/player 65), 31 instrumented tests on the Android TV emulator, 0 failures, no crash/ANR.
+APK: https://github.com/svedasgediminas-source/svedasbau.de/releases/download/nova-iptv-latest/nova-iptv.apk
+
+- **Format probe** for extension-less URLs (`/user/pass/123`, `.php?…`): short ranged GET (same UA/headers,
+  redirects, 8 s, retried without Range on 403/416) decides HLS/DASH/TS from first bytes, Content-Type and
+  final URL; the ORIGINAL URL is replayed (tokens may be single-use), only the MIME type is used; cached per URL.
+- **Recovery ladder** (bounded, ≤ 8 attempts, never loops): parse error → other container; 401/403 or no data →
+  next User-Agent; live Xtream-style `/u/p/ID(.ts)` also tries `/live/u/p/ID.m3u8` and `/u/p/ID.m3u8`.
+- **Buffering watchdog**: no byte in 10 s / no start in 20 s → next attempt, then an error instead of an endless
+  spinner; live stream stuck 15 s mid-way → bounded reconnect.
+- **Stream User-Agent** setting (Settings → Player): Automatic (default: app → VLC → Media3 default), Nova IPTV,
+  VLC, ExoPlayer default, Custom. Streams with their own #EXTVLCOPT agent keep it. Downloads unchanged.
+- HTTP/1.1, cross-protocol redirects, TS flags (non-IDR keyframes, AU detection, HDMV DTS), decoder fallback.
+- Error screen shows a technical hint (e.g. `ERROR_CODE_IO_BAD_HTTP_STATUS · HTTP 403 · TS`, `NO_DATA_TIMEOUT · TS`)
+  and a User-Agent tip – never the URL. Logcat tag `NovaPlayer`: HTTP status / Content-Type / bytes per attempt.
+- Xtream: all play paths (live, catch-up, timeshift, movies, episodes, CH+/−, number entry, retry) resolve
+  credential placeholders; live output is m3u8 when allowed_output_formats allows it, else ts.
+- Emulator tests (PlaybackRobustnessTest): HLS at extension-less path via Content-Type and via first bytes,
+  UA-gated server with VLC setting and with Automatic, silent server → `NO_DATA_TIMEOUT` error after ~12 s
+  with all three agents tried, no further state change.
+
 ## REMAINING ISSUES
 
 - M3U import holds the parsed channel list in memory before saving (very large lists on 1 GB boxes).
