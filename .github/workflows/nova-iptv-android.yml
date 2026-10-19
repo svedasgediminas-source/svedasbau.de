@@ -74,6 +74,23 @@ jobs:
           echo "===== APKs ====="
           find app/build/outputs/apk -name '*.apk' -printf '%p %s bytes\n' 2>/dev/null || true
 
+      - name: Publish APK to the "nova-iptv-latest" release (direct download link)
+        if: ${{ success() && github.event_name != 'pull_request' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          apk=app/build/outputs/apk/release/app-release.apk
+          [ -s "$apk" ] || { echo "no release APK"; exit 0; }
+          cp "$apk" nova-iptv.apk
+          tag=nova-iptv-latest
+          if ! gh release view "$tag" > /dev/null 2>&1; then
+            gh release create "$tag" --prerelease --target "${{ github.sha }}" \
+              --title "Nova IPTV – latest test build" \
+              --notes "Test build for sideloading on Android TV / Google TV. Direct link: https://github.com/${{ github.repository }}/releases/download/$tag/nova-iptv.apk . The app contains no channels; add your own playlist."
+          fi
+          gh release upload "$tag" nova-iptv.apk --clobber
+          echo "APK: https://github.com/${{ github.repository }}/releases/download/$tag/nova-iptv.apk"
+
       - name: Upload APKs
         if: always()
         uses: actions/upload-artifact@v4
