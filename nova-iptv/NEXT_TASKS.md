@@ -29,6 +29,16 @@ Ordered by priority. "Review" = findings from the internal security/correctness 
 ~~**EPG keep-window for catch-up with unknown day count**: EPG retention uses declared days only; channels~~ – DONE
     with catch-up but no day count get 1 day of past EPG although the UI allows 7.
 
+## Playback with real providers (from the 2026-10 user report)
+17. **Confirm the fix on the reporting user's TV** (M3U from an Xtream-style panel, output=ts, endless
+    buffering before). If it still fails, the error screen now shows a code (e.g.
+    `NO_DATA_TIMEOUT · TS`, `ERROR_CODE_IO_BAD_HTTP_STATUS · HTTP 403 · TS`); logcat tag `NovaPlayer`
+    shows HTTP status / Content-Type / bytes per start attempt (no URLs).
+18. Xtream: build stream URLs from `server_info` (url / port / https_port / server_protocol) when the
+    portal host differs from the streaming host (currently the portal URL is used and the panel is
+    expected to redirect).
+19. Optional FFmpeg audio extension (AC-3 / E-AC-3 / DTS / MP2 on boxes without passthrough or decoders).
+
 ## Features (P1/P2 from the brief)
 13. Live mini-preview in Live TV (second lightweight player).
 ~~EPG reminders; Guide group filter.~~ – DONE

@@ -15,8 +15,8 @@ import app.novaiptv.core.model.StreamUserAgent
 object StreamUserAgents {
     const val VLC = "VLC/3.0.20 LibVLC/3.0.20"
 
-    /** Media3's default agent (what a stock ExoPlayer app sends), e.g. "AndroidXMedia3/1.11.1". */
-    val EXOPLAYER: String = MediaLibraryInfo.DEFAULT_USER_AGENT
+    /** Media3 default agent (what a stock ExoPlayer app sends): "AndroidXMedia3/<version>". */
+    val EXOPLAYER: String = MediaLibraryInfo.VERSION_SLASHY
 
     const val MAX_CUSTOM_LENGTH = 256
 
