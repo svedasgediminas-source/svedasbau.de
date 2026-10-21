@@ -241,3 +241,107 @@ peržiūrėti konkurentų reklamas, skaityti rezultatus.
 
 **Bet pirma reikia pre-registracijos puslapio.** Be nukreipimo nei
 rankinis, nei automatinis kelias neturi prasmės.
+
+---
+
+## 11. SVEDASBAU kampanija (Vokietija)
+
+Čia yra kitas verslas, ne žaidimas: statybos ir renovacija Berlyne ir
+Saksonijoje. Paslaugos ir regionai paimti iš `index.html`, nieko
+nepridėta.
+
+### Kodėl šis verslas reklamai tinka geriau nei žaidimas
+
+Viena renovacijos užklausa kainuoja apie 7 €. Jei viena iš penkių tampa
+klientu, klientas kainuoja ~35 €, o darbas — tūkstančius. Žaidimo
+įdiegimas kainuoja 2,30–5,00 €, o vienas žaidėjas uždirba 0,50–2 €.
+Pirmas atsipirks, antras ne.
+
+### Ad set'ai
+
+| Ad set | Paslauga | Auditorija | Dalis |
+|---|---|---|---|
+| A | Fassadensanierung / WDVS | 35–65, namų savininkai | 50 % |
+| B | Badsanierung | 30–60 | 30 % |
+| C | Hausverwaltung / Bauträger | 30–60, nekilnojamojo turto valdymas | 20 % |
+
+**Fasadas pirmas, nes prie jo kabinasi valstybės subsidijos** (BAFA, KfW
+Förderung). Vokiečių namų savininkai aktyviai ieško „Förderung
+Fassadendämmung" — tai stipriausias kampas visoje renovacijos rinkoje.
+
+**Ad set C dažnai pamirštamas, o vertingiausias.** Vienas namų
+administratorius turi dešimtis pastatų; vienas tokio klientas vertingesnis
+nei dešimt privačių.
+
+### Geo
+
+Radiusais, ne miestų sąrašu: Berlynas, Dresdenas, Riesa, Döbeln,
+Waldheim, plius Brandenburgas.
+
+**Nesiaurinti.** Per maža auditorija pakelia frekvenciją, tie patys žmonės
+pamato reklamą penkis kartus ir nustoja reaguoti. Tai dažniausia smulkių
+vietinių kampanijų klaida.
+
+### Tekstai
+
+**A — Fassade**
+```
+Fassade sanieren und Heizkosten dauerhaft senken. Wir montieren
+Wärmedämmverbundsysteme nach GEG — inkl. Armierung, Dekorputz und
+Brandschutzstreifen. Berlin, Dresden und Umgebung. Über 10 Jahre
+Erfahrung, 5 Jahre Gewährleistung.
+
+Headline: Fassadensanierung mit WDVS
+CTA: Angebot anfordern
+```
+
+**B — Bad**
+```
+Neues Bad, alles aus einer Hand. Fliesen, Sanitärobjekte, Trockenbau
+und Anschlussarbeiten — ein Ansprechpartner von der Planung bis zur
+Abnahme. Berlin und Sachsen. Jetzt unverbindliches Angebot anfragen.
+
+Headline: Komplette Badsanierung
+CTA: Angebot anfordern
+```
+
+**C — Hausverwaltungen**
+```
+Zuverlässiger Partner für Hausverwaltungen und Bauträger in Berlin und
+Sachsen. Fassade, Innenausbau, Dach und Keller. Über 500 realisierte
+Projekte, termingerecht ausgeführt, 5 Jahre Gewährleistung.
+
+Headline: Partner für Hausverwaltungen
+CTA: Mehr dazu
+```
+
+### Teisinis įspėjimas: UWG
+
+**Reklamoje nenaudoti „100 % Kundenzufriedenheit".** Svetainėje tai yra ir
+tiek to, bet reklamoje nepagrįsti superlatyvai Vokietijoje pažeidžia UWG,
+o konkurentai už tai siunčia **Abmahnung** — advokato raštą su sąskaita.
+Vokietijoje tai atskira pramonė.
+
+Saugu naudoti tai, kas patikrinama: „über 500 realisierte Projekte",
+„über 10 Jahre Erfahrung", „5 Jahre Gewährleistung".
+
+### Biudžeto skaičiai
+
+| €/mėn | CPM | Parodymai | Žmonių | Užklausos (~7 €) |
+|---|---|---|---|---|
+| 300 | 8,74 € | 34 300 | ~17 200 | ~41 |
+| 600 | 8,74 € | 68 700 | ~34 300 | ~82 |
+
+Prie 300 € dalijama 150 / 90 / 60 € tarp A, B, C.
+
+**Kas šiuose skaičiuose nepasakyta:** 17 000 žmonių per mėnesį yra apie
+570 per dieną. Statybų verslui to užtenka, nes reikia ne tūkstančio
+klientų, o kelių. Bet matomumo „pastebimai nepakeis" — vertė yra kelios
+dešimtys užklausų, ne pasiekiamumas.
+
+### Kas lieka neišspręsta
+
+Lietuvos kampanijos paskirtis. CPM apie 6 €, pigiausia iš trijų, bet
+neaišku, ar ji darbuotojų paieškai Vokietijos objektams, ar klientams
+Lietuvoje. Darbuotojų paieška Meta yra **Special Ad Category** kai kuriose
+rinkose, o tai apriboja taikymą — tad tai reikia žinoti prieš kuriant.
